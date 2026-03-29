@@ -11,10 +11,12 @@ const request = axios.create({
 request.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token')
+        console.log("【请求拦截器】取出的 token =", token)
+
         if (token) {
             config.headers['token'] = token
         }
-        console.log('【请求】', config.url, config.headers)
+        console.log("【请求头】最终 headers =", config.headers)
         return config
     },
     (error) => Promise.reject(error)
@@ -34,11 +36,6 @@ request.interceptors.response.use(
         }
     }
 )
-
-
-
-
-
 
 
 export default request
