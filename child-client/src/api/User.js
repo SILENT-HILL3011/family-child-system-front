@@ -54,3 +54,11 @@ export const inviteMember = (data)=>{
     params:data
   })
 }
+
+export const getFamilyId = () => {
+  return request({
+    url: '/child/user/getFamilyId',
+    method: 'get'
+    // 自动携带token，无需手动传参
+  })
+}

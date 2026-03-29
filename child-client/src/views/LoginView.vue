@@ -38,7 +38,7 @@
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
-import { userLogin } from '../api/user'
+import { userLogin,getFamilyId } from '../api/user'
 
 const router = useRouter()
 const loginFormRef = ref(null)
@@ -70,20 +70,28 @@ const handleLogin = async () => {
 
     const { phoneNumber, password } = loginForm.value
 
-    const res = await userLogin({ 
+    // 1. 登录获取token
+    const res = await userLogin({
       phoneNumber: phoneNumber.trim(),
       password: password.trim()
     })
     const token = res.data
-
-    console.log("获取到的 token：", token);
-
     localStorage.setItem('token', token)
-    ElMessage.success('登录成功')
-    router.push('/home') // 跳首页
 
+    // 2. 登录成功后，自动获取familyId
+    const familyRes = await getFamilyId()
+    const familyId = familyRes.data
+    localStorage.setItem('familyId', familyId) // 存入本地
+
+    ElMessage.success('登录成功')
+    console.log('token:', token)
+    console.log('familyId:', familyId)
+
+    // 跳转到首页
+    router.push('/home')
   } catch (err) {
     ElMessage.error('登录失败：手机号或密码错误')
+    console.error(err)
   } finally {
     isLoading.value = false
   }

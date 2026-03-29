@@ -61,6 +61,7 @@ const handleLogout = () => {
 // 收件箱
 const handleInbox = () => {
   ElMessage.info('进入收件箱')
+  router.push('/mail/box')
 }
 </script>
 

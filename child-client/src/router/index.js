@@ -10,6 +10,12 @@ import VaccineQuery from '../views/growth/VaccineQuery.vue'
 import VaccineTimeLine from '../views/growth/VaccineTimeLine.vue'
 import SearchLive from '../views/growth/SearchLive.vue'
 import SmartSchedule from '../views/schedule/SmartSchedule.vue'
+import Box from '../views/mail/Box.vue'
+import Detail from '../views/mail/Detail.vue'
+import Family from '../views/family/Family.vue'
+import TaskList from '../views/family/TaskList.vue'
+import MyTask from '../views/family/MyTask.vue'
+import FamilyMoment from '../views/family/FamilyMoment.vue'
 
 const routes = [
   {
@@ -66,6 +72,33 @@ const routes = [
     path: '/schedule',
     name: 'schedule',
     component: SmartSchedule
+  },
+  {
+    path: '/mail/box',
+    name: 'MailBox',
+    component: Box
+  },
+  {
+    path: '/mail/detail/:id',
+    name: 'MailDetail',
+    component: Detail
+  },
+  {
+    path: '/family',
+    name: 'Family',
+    component: Family
+  },
+  {
+    path: '/family/task-list',
+    component: TaskList
+  },
+  {
+    path: '/family/my-task',
+    component: MyTask
+  },
+  {
+    path: '/family/moment',
+    component: FamilyMoment
   }
 ]
 
