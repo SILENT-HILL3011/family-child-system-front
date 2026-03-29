@@ -16,6 +16,9 @@ import Family from '../views/family/Family.vue'
 import TaskList from '../views/family/TaskList.vue'
 import MyTask from '../views/family/MyTask.vue'
 import FamilyMoment from '../views/family/FamilyMoment.vue'
+import Consult from '../views/consult/Consult.vue'
+import ConsultChat from '../views/consult/ConsultChat.vue'
+import ConsultHistory from '../views/consult/ConsultHistory.vue'
 
 const routes = [
   {
@@ -99,6 +102,20 @@ const routes = [
   {
     path: '/family/moment',
     component: FamilyMoment
+  },
+  {
+    path: '/expert',
+    name: 'expert',
+    component: Consult
+  },
+  {
+    path: '/consult/chat',
+    component: ConsultChat
+  },
+  {
+    path: '/consult/history',
+    name: 'ConsultHistory',
+    component:ConsultHistory
   }
 ]
 
