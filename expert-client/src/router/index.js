@@ -6,9 +6,6 @@ import { ElMessage } from 'element-plus'
 import ExpertChatList from '../views/utils/ExpertChatList.vue'
 import ExpertChat from '../views/utils/ExpertChat.vue'
 import ToolsIndex from '../views/utils/ToolsIndex.vue'
-import Knowledge from '../views/utils/Knowledge.vue'
-import Recipe from '../views/utils/Recipe.vue'
-import Allergy from '../views/utils/Allergy.vue'
 
 
 const routes = [
@@ -29,11 +26,7 @@ const routes = [
     path: '/expert/tools',
     component: ToolsIndex,
     // redirect: '/expert/tools/allergy',
-    children: [
-      { path: 'allergy', component: Allergy },
-      { path: 'recipe', component: Recipe },
-      { path: 'knowledge', component: Knowledge },
-    ]
+    
   }
 
 ]

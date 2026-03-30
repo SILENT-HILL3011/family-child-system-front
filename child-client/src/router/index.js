@@ -19,6 +19,7 @@ import FamilyMoment from '../views/family/FamilyMoment.vue'
 import Consult from '../views/consult/Consult.vue'
 import ConsultChat from '../views/consult/ConsultChat.vue'
 import ConsultHistory from '../views/consult/ConsultHistory.vue'
+import Index from '../views/utils/Index.vue'
 
 const routes = [
   {
@@ -115,7 +116,13 @@ const routes = [
   {
     path: '/consult/history',
     name: 'ConsultHistory',
-    component:ConsultHistory
+    component: ConsultHistory
+  },
+  {
+    path: '/util',
+    name: 'Util',
+    component: Index,
+    meta: { title: '实用工具' }
   }
 ]
 
