@@ -1,5 +1,6 @@
 import request from "../utils/request"
 
+// ================== 基础信息 ==================
 export const addChild = (data) => {
     return request({
         url: '/child/grow/addChild',
@@ -32,6 +33,32 @@ export const updateChildInfo = (data) => {
   })
 }
 
+// ================== 生长发育 ==================
+export const recordGrowth = (data) => {
+  return request({
+    url: '/child/grow/recordGrowth',
+    method: 'post',
+    data: data
+  })
+}
+
+export const searchGrowth = (data) => {
+  return request({
+    url: '/child/grow/searchGrowth',
+    method: 'post',
+    params: data
+  })
+}
+
+export const updateGrowthRecord = (data) => {
+  return request({
+    url: '/child/grow/updateGrowthRecord',
+    method: 'post',
+    params: data
+  })
+}
+
+// ================== 疫苗 ==================
 export const searchVaccineByChildId = (data) => {
   return request({
     url: '/child/grow/searchVaccine',
@@ -51,23 +78,25 @@ export const updateVaccine = (data)=> {
 export const searchVaccineThisYear = (data) => {
   return request({
     url: '/child/grow/searchVaccineThisYear',
-    method: 'post',
+    method: "post",
     params: data
   })
 }
 
+// ================== 体检 ==================
 export const appointExamination = (data) => {
   return request({
     url: '/child/grow/appointExamination',
-    method: 'post',
+    method: "post",
     params: data
   })
 }
 
+// ================== 生活记录（饮食/睡眠） ==================
 export const recordLive = (data) => {
   return request({
     url: '/child/grow/recordLive',
-    method: 'post',
+    method: "post",
     params: data
   })
 }
@@ -75,7 +104,7 @@ export const recordLive = (data) => {
 export const searchLive = (data) => {
   return request({
     url: '/child/grow/searchLive',
-    method: 'get',
+    method: "get",
     params: data
   })
 }
@@ -83,7 +112,7 @@ export const searchLive = (data) => {
 export const exportLive = (params) => {
   return request({
     url: '/child/grow/exportLive',
-    method: 'get',
+    method: "get",
     params: params,
     responseType: 'blob'
   })

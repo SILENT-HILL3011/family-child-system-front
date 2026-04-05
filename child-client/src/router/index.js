@@ -20,6 +20,7 @@ import Consult from '../views/consult/Consult.vue'
 import ConsultChat from '../views/consult/ConsultChat.vue'
 import ConsultHistory from '../views/consult/ConsultHistory.vue'
 import Index from '../views/utils/Index.vue'
+import GrowthTrend from '../views/growth/GrowthTrend.vue'
 
 const routes = [
   {
@@ -51,6 +52,11 @@ const routes = [
     path: '/growth',
     name: 'Growth',
     component: Growth
+  },
+  {
+    path: '/growth-trend',
+    name: 'GrowthGrowthTrend',
+    component: GrowthTrend
   },
   {
     path: '/child-list',
