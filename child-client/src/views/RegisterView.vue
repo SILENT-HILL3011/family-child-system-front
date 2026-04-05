@@ -1,37 +1,76 @@
 <template>
   <div class="register-container">
+    <!-- 背景装饰 -->
+    <div class="bg-decoration"></div>
+
     <!-- 注册表单卡片 -->
-    <el-card class="register-card">
-      <div slot="header" class="card-header">
-        <h2>用户注册</h2>
-      </div>
+    <el-card class="register-card" shadow="hover">
+      <template #header>
+        <div class="card-header">
+          <h2>家庭育儿助手</h2>
+          <p class="sub-title">新用户注册</p>
+        </div>
+      </template>
 
       <!-- 注册表单 -->
       <el-form ref="registerFormRef" :model="registerForm" :rules="registerRules" label-width="80px"
         class="register-form">
         <!-- 手机号输入 -->
         <el-form-item label="手机号" prop="phoneNumber">
-          <el-input v-model="registerForm.phoneNumber" placeholder="请输入11位手机号" maxlength="11" clearable />
+          <el-input 
+            v-model="registerForm.phoneNumber" 
+            placeholder="请输入11位手机号" 
+            maxlength="11" 
+            clearable
+            size="large"
+            prefix-icon="Phone"
+          />
         </el-form-item>
 
         <!-- 密码输入 -->
         <el-form-item label="密码" prop="password">
-          <el-input v-model="registerForm.password" type="password" placeholder="请输入密码（6-20位）" show-password
-            maxlength="20" clearable />
+          <el-input 
+            v-model="registerForm.password" 
+            type="password" 
+            placeholder="请输入密码（6-20位）" 
+            show-password
+            maxlength="20" 
+            clearable
+            size="large"
+            prefix-icon="Lock"
+          />
         </el-form-item>
 
         <el-form-item label="确认密码" prop="confirmPassword">
-          <el-input v-model="registerForm.confirmPassword" type="password" placeholder="请再次输入密码" show-password
-            maxlength="20" clearable />
+          <el-input 
+            v-model="registerForm.confirmPassword" 
+            type="password" 
+            placeholder="请再次输入密码" 
+            show-password
+            maxlength="20" 
+            clearable
+            size="large"
+            prefix-icon="Lock"
+          />
         </el-form-item>
 
         <!-- 注册按钮 -->
         <el-form-item class="btn-group">
-          <el-button type="primary" @click="handleRegister" :loading="isLoading">
+          <el-button 
+            type="primary" 
+            @click="handleRegister" 
+            :loading="isLoading" 
+            size="large"
+            style="width: 100%"
+          >
             注册
           </el-button>
-          <!-- 可选：跳转到登录页（后续可扩展） -->
-          <el-button link type="primary" @click="goToLogin">已有账号？去登录</el-button>
+        </el-form-item>
+
+        <el-form-item class="login-link">
+          <el-button type="text" @click="goToLogin">
+            已有账号？立即登录
+          </el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -120,47 +159,120 @@ const goToLogin = () => {
 </script>
 
 <style scoped>
-/* 1. 铺满整个屏幕，无空白、无滚动条、禁止拖动 */
+/* 全屏居中 + 温暖背景 */
 .register-container {
   width: 100vw;
   height: 100vh;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  /* 垂直居中 */
-  justify-content: center;
-  /* 水平居中 */
-  background-color: #f5f7fa;
-  overflow: hidden;
-  /* 禁止滚动条 + 禁止拖动页面 */
   position: fixed;
-  /* 固定屏幕，不能拖动 */
   top: 0;
   left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 
-/* 2. 注册卡片 */
+/* 背景装饰（柔和不抢戏） */
+.bg-decoration {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.3) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* 注册卡片：更大、更圆润、更稳重 */
 .register-card {
-  width: 450px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  width: 480px;
+  border-radius: 16px;
+  border: none;
+  background: #ffffff;
+  z-index: 10;
 }
 
+/* 卡片头部：更有温度的标题 */
 .card-header {
   text-align: center;
-  font-size: 16px;
-  font-weight: 600;
+  padding: 10px 0;
 }
 
-/* 3. 表单 */
+.card-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a3a69;
+  letter-spacing: 2px;
+}
+
+.sub-title {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: #666;
+  font-weight: 400;
+}
+
+/* 表单样式：更大的输入框、更清晰的间距 */
 .register-form {
   margin-top: 20px;
+  padding: 0 20px;
 }
 
+.register-form :deep(.el-form-item__label) {
+  font-size: 15px;
+  font-weight: 500;
+  color: #333;
+  line-height: 40px;
+}
+
+.register-form :deep(.el-input__wrapper) {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 12px 16px;
+}
+
+.register-form :deep(.el-input__inner) {
+  font-size: 15px;
+  color: #333;
+}
+
+/* 按钮组 */
 .btn-group {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  padding-top: 20px;
   margin-top: 10px;
+}
+
+.btn-group :deep(.el-button--primary) {
+  background: #409eff;
+  border-color: #409eff;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  height: 48px;
+  transition: all 0.3s;
+}
+
+.btn-group :deep(.el-button--primary:hover) {
+  background: #66b1ff;
+  border-color: #66b1ff;
+}
+
+/* 登录链接 */
+.login-link {
+  text-align: center;
+  padding-top: 10px;
+}
+
+.login-link :deep(.el-button--text) {
+  color: #409eff;
+  font-size: 14px;
+}
+
+.login-link :deep(.el-button--text:hover) {
+  color: #66b1ff;
 }
 </style>
