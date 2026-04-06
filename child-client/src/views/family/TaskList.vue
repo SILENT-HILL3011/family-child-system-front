@@ -6,12 +6,6 @@
             <h2>查看家庭任务</h2>
         </div>
 
-        <!-- 查询区域：输入发布人ID + 查询按钮 -->
-        <div class="search-box">
-            <el-input v-model="publisherId" placeholder="请输入发布人ID" style="width: 300px; margin-right: 10px" />
-            <el-button type="primary" @click="doSearch">查询</el-button>
-        </div>
-
         <!-- 任务列表 -->
         <el-table :data="taskList" border style="width: 90%; margin: 20px auto">
             <el-table-column label="任务ID" prop="taskId" />
@@ -41,19 +35,17 @@
                     </el-button>
                 </template>
             </el-table-column>
-
         </el-table>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { searchFamilyTask, acceptFamilyTask } from '../../api/family'
 
 const router = useRouter()
-const publisherId = ref('')  // 发布人ID，用户输入
 const taskList = ref([])
 
 // 返回
@@ -61,17 +53,24 @@ const goBack = () => {
     router.go(-1)
 }
 
-// 查询任务
+// ====================================
+//  页面一加载 自动查询家庭任务
+// ====================================
+onMounted(() => {
+    doSearch()
+})
+
+// 自动从 localStorage 取 familyId 查询
 const doSearch = async () => {
-    if (!publisherId.value) {
-        ElMessage.warning('请输入发布人ID')
+    const familyId = localStorage.getItem('familyId')
+    
+    if (!familyId) {
+        ElMessage.warning('未获取到家庭信息，请重新登录')
         return
     }
 
     try {
-        const res = await searchFamilyTask({
-            publisherId: publisherId.value
-        })
+        const res = await searchFamilyTask({ familyId })
         if (res.code === 200) {
             taskList.value = res.data
         } else {
@@ -104,7 +103,7 @@ const handleAccept = async (row) => {
 <style scoped>
 .task-page {
   padding: 20px;
-  width: 100%;       /* 页面全屏 */
+  width: 100%;
   box-sizing: border-box;
 }
 
@@ -115,18 +114,7 @@ const handleAccept = async (row) => {
   margin-bottom: 20px;
 }
 
-.search-box {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-/* 强制表格全屏 + 关闭滚动条 */
 :deep(.el-table) {
   width: 100% !important;
-  min-width: 1400px !important;  /* 超宽 */
-}
-
-:deep(.el-table__body-wrapper) {
-  overflow: hidden !important; /* 彻底去掉下方滚动条 */
 }
 </style>

@@ -32,10 +32,15 @@ export const updateExpertInfo = (data) => {
   })
 }
 
-export const createPersonalExamination = (examinationTime) => {
+export const createPersonalExamination = (startTime, endTime) => {
+  console.log("【接口】参数：", { startTime, endTime })
+  
   return request({
-    url: '/expert/info/createPersonalExamination',
-    method: 'GET',
-    params: { examinationTime }
+    url: '/expert/info/createPersonalExamination', // 这里加了 /info/
+    method: 'POST',                               // 大写 POST，和你统一
+    params: { 
+      startTime: startTime, 
+      endTime: endTime 
+    }
   })
 }

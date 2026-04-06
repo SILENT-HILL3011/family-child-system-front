@@ -67,15 +67,25 @@
     </el-dialog>
 
     <!-- ======================
-         新增：体检发布弹窗（直接写在这里！）
+         体检发布弹窗 → 改为 开始时间 + 结束时间
          ====================== -->
     <el-dialog v-model="checkupDialogVisible" title="创建体检" width="500px">
       <el-form label-width="100px" :model="checkupForm">
-        <el-form-item label="体检时间">
+        <el-form-item label="开始时间">
           <el-date-picker
-            v-model="checkupForm.examinationTime"
+            v-model="checkupForm.startTime"
             type="datetime"
-            placeholder="选择体检时间"
+            placeholder="选择开始时间"
+            style="width: 100%"
+            format="YYYY-MM-DD HH:mm:ss"
+            value-format="YYYY-MM-DD HH:mm:ss"
+          />
+        </el-form-item>
+        <el-form-item label="结束时间">
+          <el-date-picker
+            v-model="checkupForm.endTime"
+            type="datetime"
+            placeholder="选择结束时间"
             style="width: 100%"
             format="YYYY-MM-DD HH:mm:ss"
             value-format="YYYY-MM-DD HH:mm:ss"
@@ -100,7 +110,6 @@ import { searchExpertInfo, updateExpertInfo, createPersonalExamination } from '.
 const router = useRouter()
 
 // 菜单
-
 const menuList = ref([
   { name: '专家信息管理', type: 'dialog' },
   { name: '体检发布', type: 'dialog' },
@@ -116,11 +125,12 @@ const infoForm = ref({})
 const saving = ref(false)
 
 // ==================
-// 体检发布（新增）
+// 体检发布 → 改为 startTime + endTime
 // ==================
 const checkupDialogVisible = ref(false)
 const checkupForm = ref({
-  examinationTime: ''
+  startTime: '',
+  endTime: ''
 })
 const checkupLoading = ref(false)
 
@@ -132,7 +142,6 @@ const handleMenuClick = async (item) => {
     await loadExpertInfo()
     infoDialogVisible.value = true
   } else if (item.name === '体检发布') {
-    // 打开体检弹窗
     checkupDialogVisible.value = true
   } else {
     router.push(item.path)
@@ -175,16 +184,23 @@ const saveExpertInfo = async () => {
 }
 
 // ==================
-// 提交体检（新增）
+// 提交体检 → 传递 startTime 和 endTime
 // ==================
 const submitCheckup = async () => {
-  if (!checkupForm.value.examinationTime) {
-    return ElMessage.warning('请选择体检时间')
+  const { startTime, endTime } = checkupForm.value
+  console.log("【体检弹窗】开始时间：", startTime)
+  console.log("【体检弹窗】结束时间：", endTime)
+
+  if (!startTime || !endTime) {
+    return ElMessage.warning('请选择开始时间和结束时间')
   }
 
   checkupLoading.value = true
   try {
-    const res = await createPersonalExamination(checkupForm.value.examinationTime)
+    console.log("【体检弹窗】开始调用接口...")
+    const res = await createPersonalExamination(startTime, endTime)
+    console.log("【体检弹窗】接口返回：", res)
+    
     if (res.code === 200) {
       ElMessage.success('创建体检成功')
       checkupDialogVisible.value = false
@@ -192,6 +208,7 @@ const submitCheckup = async () => {
       ElMessage.error(res.msg || '创建失败')
     }
   } catch (e) {
+    console.error("【体检弹窗】接口报错：", e)
     ElMessage.error('请求失败')
   } finally {
     checkupLoading.value = false
@@ -213,7 +230,6 @@ const handleInbox = () => {
 </script>
 
 <style scoped>
-/* 你的原有样式 100% 不变 */
 .home-page {
   width: 100vw;
   height: 100vh;

@@ -2,7 +2,7 @@
     <div class="login-container">
         <!-- 背景装饰 -->
         <div class="bg-decoration"></div>
-        
+
         <el-card class="login-card" shadow="hover">
             <template #header>
                 <div class="card-header">
@@ -14,33 +14,20 @@
             <el-form ref="loginFormRef" :model="loginForm" :rules="loginRules" label-width="80px" class="login-form">
                 <!-- 手机号 -->
                 <el-form-item label="手机号" prop="phoneNumber">
-                    <el-input 
-                        v-model="loginForm.phoneNumber" 
-                        placeholder="请输入11位手机号" 
-                        maxlength="11" 
-                        clearable
-                        size="large"
-                        prefix-icon="Phone"
-                    />
+                    <el-input v-model="loginForm.phoneNumber" placeholder="请输入11位手机号" maxlength="11" clearable
+                        size="large" prefix-icon="Phone" />
                 </el-form-item>
 
                 <!-- 密码 -->
                 <el-form-item label="密码" prop="password">
-                    <el-input 
-                        v-model="loginForm.password" 
-                        type="password" 
-                        placeholder="请输入密码" 
-                        show-password
-                        maxlength="20" 
-                        clearable
-                        size="large"
-                        prefix-icon="Lock"
-                    />
+                    <el-input v-model="loginForm.password" type="password" placeholder="请输入密码" show-password
+                        maxlength="20" clearable size="large" prefix-icon="Lock" />
                 </el-form-item>
 
                 <!-- 按钮 -->
                 <el-form-item class="btn-group">
-                    <el-button type="primary" @click="handleLogin" :loading="isLoading" style="width: 100%" size="large">
+                    <el-button type="primary" @click="handleLogin" :loading="isLoading" style="width: 100%"
+                        size="large">
                         登录
                     </el-button>
                 </el-form-item>
@@ -52,14 +39,30 @@
                 </el-form-item>
             </el-form>
         </el-card>
+        <el-dialog v-model="captchaVisible" title="安全验证" width="340px" :close-on-click-modal="false"
+            :close-on-press-escape="false" center>
+            <div class="slider-captcha-box">
+                <!-- 背景图 -->
+                <img :src="captchaBg" class="captcha-bg" />
+                <!-- 滑块 -->
+                <img :src="captchaBlock" class="captcha-block" :style="{ top: `${captchaY}px`, left: `${blockX}px` }"
+                    @mousedown="startDrag" />
+            </div>
+
+            <div style="text-align:center; margin-top:15px;">
+                <el-button type="primary" @click="confirmCaptcha">完成验证</el-button>
+            </div>
+        </el-dialog>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
-import { userLogin,getFamilyId } from '../api/user'
+import { userLogin } from '../api/user'
+import request from '../utils/request'
+
 
 const router = useRouter()
 const loginFormRef = ref(null)
@@ -67,180 +70,164 @@ const isLoading = ref(false)
 
 // 登录表单
 const loginForm = ref({
-    phoneNumber: '',
-    password: ''
+  phoneNumber: '',
+  password: ''
 })
+
+// 滑动拼图弹窗
+const captchaVisible = ref(false)
+const captchaBg = ref('')
+const captchaBlock = ref('')
+const captchaY = ref(0)
+const captchaKey = ref('')
+const blockX = ref(0)
+let startX = 0
 
 // 校验规则
 const loginRules = ref({
-    phoneNumber: [
-        { required: true, message: '请输入手机号', trigger: 'blur' },
-        { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
-    ],
-    password: [
-        { required: true, message: '请输入密码', trigger: 'blur' },
-        { min: 6, max: 20, message: '密码长度 6-20 位', trigger: 'blur' }
-    ]
+  phoneNumber: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, max: 20, message: '密码长度 6-20 位', trigger: 'blur' }
+  ]
 })
 
-// 登录逻辑
+// 点击登录 → 弹出拼图
 const handleLogin = async () => {
+  await loginFormRef.value.validate()
+
+  // 获取滑动验证码
+  const { data: res } = await request.get('/child/user/slider/get')
+  captchaBg.value = res.bg
+  captchaBlock.value = res.block
+  captchaY.value = res.y
+  captchaKey.value = res.key
+  blockX.value = 0
+
+  // 打开弹窗
+  captchaVisible.value = true
+}
+
+// 滑块拖动
+const startDrag = (e) => {
+  startX = e.clientX - blockX.value
+  document.onmousemove = (ev) => {
+    let x = ev.clientX - startX
+    x = Math.max(0, Math.min(x, 250))
+    blockX.value = x
+  }
+  document.onmouseup = () => {
+    document.onmousemove = null
+  }
+}
+
+// 验证通过 → 真正登录
+const confirmCaptcha = async () => {
+  captchaVisible.value = false
+  isLoading.value = true
+
   try {
-    await loginFormRef.value.validate()
-    isLoading.value = true
-
-    const { phoneNumber, password } = loginForm.value
-
-    // 1. 登录获取token
     const res = await userLogin({
-      phoneNumber: phoneNumber.trim(),
-      password: password.trim()
+      phoneNumber: loginForm.value.phoneNumber.trim(),
+      password: loginForm.value.password.trim(),
+      captchaKey: captchaKey.value,
+      moveX: blockX.value
     })
-    const token = res.data
-    localStorage.setItem('token', token)
 
-    // 2. 登录成功后，自动获取familyId
-    const familyRes = await getFamilyId()
-    const familyId = familyRes.data
-    localStorage.setItem('familyId', familyId) // 存入本地
-
+    localStorage.setItem('token', res.data)
     ElMessage.success('登录成功')
-    console.log('token:', token)
-    console.log('familyId:', familyId)
-
-    // 跳转到首页
     router.push('/home')
   } catch (err) {
-    ElMessage.error('登录失败：手机号或密码错误')
-    console.error(err)
+    ElMessage.error('登录失败：验证失败或账号密码错误')
   } finally {
     isLoading.value = false
   }
 }
 
-// 去注册页
+// 去注册
 const goToRegister = () => {
-    router.push('/register')
+  router.push('/register')
 }
-
-
 </script>
 
 <style scoped>
-/* 全屏居中 + 温暖背景 */
 .login-container {
-    width: 100vw;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
-    overflow: hidden;
-    margin: 0;
-    padding: 0;
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
+  overflow: hidden;
 }
 
-/* 背景装饰（柔和不抢戏） */
 .bg-decoration {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: 
-        radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.3) 0%, transparent 50%);
-    pointer-events: none;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 10% 20%, rgba(255,255,255,0.3) 0%, transparent 50%),
+              radial-gradient(circle at 90% 80%, rgba(255,255,255,0.3) 0%, transparent 50%);
+  pointer-events: none;
 }
 
-/* 登录卡片：更大、更圆润、更稳重 */
 .login-card {
-    width: 480px;
-    border-radius: 16px;
-    border: none;
-    background: #ffffff;
-    z-index: 10;
+  width: 480px;
+  border-radius: 16px;
+  background: #fff;
+  z-index: 10;
 }
 
-/* 卡片头部：更有温度的标题 */
 .card-header {
-    text-align: center;
-    padding: 10px 0;
+  text-align: center;
 }
 
 .card-header h2 {
-    margin: 0;
-    font-size: 24px;
-    font-weight: 600;
-    color: #1a3a69;
-    letter-spacing: 2px;
+  font-size: 24px;
+  color: #1a3a69;
 }
 
 .sub-title {
-    margin: 8px 0 0;
-    font-size: 14px;
-    color: #666;
-    font-weight: 400;
+  color: #666;
+  font-size: 14px;
 }
 
-/* 表单样式：更大的输入框、更清晰的间距 */
 .login-form {
-    margin-top: 20px;
-    padding: 0 20px;
+  margin-top: 20px;
 }
 
-.login-form :deep(.el-form-item__label) {
-    font-size: 15px;
-    font-weight: 500;
-    color: #333;
-    line-height: 40px;
-}
-
-.login-form :deep(.el-input__wrapper) {
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    padding: 12px 16px;
-}
-
-.login-form :deep(.el-input__inner) {
-    font-size: 15px;
-    color: #333;
-}
-
-/* 按钮组：更大的按钮、更柔和的主色 */
 .btn-group {
-    padding-top: 20px;
-    margin-top: 10px;
+  padding-top: 10px;
 }
 
-.btn-group :deep(.el-button--primary) {
-    background: #409eff;
-    border-color: #409eff;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 500;
-    height: 48px;
-    transition: all 0.3s;
-}
-
-.btn-group :deep(.el-button--primary:hover) {
-    background: #66b1ff;
-    border-color: #66b1ff;
-}
-
-/* 注册链接：居中、更醒目 */
 .register-link {
-    text-align: center;
-    padding-top: 10px;
+  text-align: center;
 }
 
-.register-link :deep(.el-button--text) {
-    color: #409eff;
-    font-size: 14px;
+/* 滑动拼图样式 */
+.slider-captcha-box {
+  position: relative;
+  width: 300px;
+  height: 180px;
+  margin: 0 auto;
 }
 
-.register-link :deep(.el-button--text:hover) {
-    color: #66b1ff;
+.captcha-bg {
+  width: 100%;
+  height: 100%;
+  user-select: none;
+}
+
+.captcha-block {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+  user-select: none;
 }
 </style>
