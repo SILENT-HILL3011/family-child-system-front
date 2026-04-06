@@ -45,7 +45,7 @@
         <div class="card">
           <span class="icon">🎁 </span>
           <p>接受体检</p>
-          <el-button type="primary" @click="openExamineDialog">进入</el-button>
+          <el-button type="primary" @click="openExamineList">进入</el-button>
         </div>
         <!-- 8 -->
         <div class="card">
@@ -60,14 +60,14 @@
           <el-button type="primary" @click="goTo('/search-live')">进入</el-button>
         </div>
 
-        <!-- ================== 新加 10 ================== -->
+        <!-- 10 -->
         <div class="card">
           <span class="icon">📈</span>
           <p>生长发育记录</p>
           <el-button type="primary" @click="openGrowthDialog">进入</el-button>
         </div>
 
-        <!-- ================== 新加 11 ================== -->
+        <!-- 11 -->
         <div class="card">
           <span class="icon">📉</span>
           <p>成长趋势查询</p>
@@ -78,7 +78,62 @@
     </div>
   </div>
 
-  <!-- 原来的所有弹窗 全部保留不动 -->
+  <!-- ================== 可预约体检列表 ================== -->
+  <!-- ================== 可预约体检列表 ================== -->
+<el-dialog v-model="examineListDialog" title="🏥 可预约体检列表" width="700px" @open="loadExaminationList">
+  <div v-if="examineListLoading" style="text-align:center;padding:40px">加载中...</div>
+  <div v-else style="padding:10px">
+    <div v-if="examineList.length === 0" style="padding:40px;text-align:center;color:#999">暂无可预约体检</div>
+    <el-table v-else :data="examineList" border size="small">
+      <el-table-column label="医生ID" prop="doctorId" />
+      <el-table-column label="体检开始" prop="startTime" />
+      <el-table-column label="体检结束" prop="endTime" />
+      <el-table-column label="操作">
+        <template #default="{ row }">
+          <el-button type="success" size="small" @click="openAppointDialog(row)">预约</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+  </div>
+</el-dialog>
+
+<!-- ================== 预约弹窗（加了预约时间） ================== -->
+<el-dialog v-model="examineDialog" title="确认体检预约" width="520px" center>
+  <div style="padding:25px 15px 15px;">
+    <el-form label-width="100px">
+      <el-form-item label="儿童ID">
+        <el-input v-model="examineForm.childId" placeholder="请输入儿童ID" style="width:100%" />
+      </el-form-item>
+      <el-form-item label="医生ID">
+        <el-input v-model="examineForm.doctorId" disabled style="width:100%" />
+      </el-form-item>
+      <el-form-item label="体检开始">
+        <el-input v-model="examineForm.startTime" disabled style="width:100%" />
+      </el-form-item>
+      <el-form-item label="体检结束">
+        <el-input v-model="examineForm.endTime" disabled style="width:100%" />
+      </el-form-item>
+
+      <!-- ================== 关键：用户自选预约时间 ================== -->
+      <el-form-item label="预约时间">
+        <el-date-picker
+          v-model="examineForm.appointTime"
+          type="datetime"
+          placeholder="请选择预约时间"
+          format="YYYY-MM-DD HH:mm:ss"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          style="width:100%"
+        />
+      </el-form-item>
+    </el-form>
+  </div>
+  <template #footer>
+    <el-button @click="examineDialog = false">取消</el-button>
+    <el-button type="primary" @click="doExamineAppoint">确认预约</el-button>
+  </template>
+</el-dialog>
+
+  <!-- 其他弹窗全部保留不变 -->
   <el-dialog v-model="addDialog" title="添加孩子信息" width="500px">
     <el-form :model="form" label-width="100px">
       <el-form-item label="家庭ID">
@@ -96,12 +151,10 @@
       <el-form-item label="身份证号">
         <el-input v-model="form.idNumber" placeholder="请输入身份证号码" />
       </el-form-item>
-      <!-- 新增出生日期 -->
       <el-form-item label="出生日期">
         <el-input v-model="form.birthDate" placeholder="格式：yyyy-MM-dd" />
       </el-form-item>
     </el-form>
-
     <template #footer>
       <el-button @click="addDialog = false">取消</el-button>
       <el-button type="primary" @click="submitAdd">确认添加</el-button>
@@ -115,58 +168,54 @@
       <el-button type="primary" @click="getChildInfoForEdit">下一步</el-button>
     </template>
   </el-dialog>
+
   <el-dialog v-model="editDialog" title="编辑儿童信息" width="550px">
-  <el-form :model="editForm" label-width="100px">
-    <el-form-item label="儿童ID">
-      <el-input v-model="editForm.childId" disabled />
-    </el-form-item>
-    <el-form-item label="孩子姓名">
-      <el-input v-model="editForm.childName" />
-    </el-form-item>
-    <el-form-item label="性别">
-      <el-select v-model="editForm.sex">
-        <el-option label="男" :value="1" />
-        <el-option label="女" :value="0" />
-      </el-select>
-    </el-form-item>
-    <el-form-item label="家庭ID">
-      <el-input v-model="editForm.familyId" disabled />
-    </el-form-item>
-    <el-form-item label="年龄">
-      <el-input v-model="editForm.age" />
-    </el-form-item>
-    <el-form-item label="身份证号">
-      <el-input v-model="editForm.idNumber" />
-    </el-form-item>
-
-    <!-- 身高体重头围 -->
-    <el-form-item label="身高">
-      <el-input v-model.number="editForm.height" />
-    </el-form-item>
-    <el-form-item label="体重">
-      <el-input v-model.number="editForm.weight" />
-    </el-form-item>
-    <el-form-item label="头围">
-      <el-input v-model.number="editForm.headCirc" />
-    </el-form-item>
-
-    <!-- 识字、单词、诗词 -->
-    <el-form-item label="认字数">
-      <el-input v-model.number="editForm.chineseWordCount" />
-    </el-form-item>
-    <el-form-item label="单词数">
-      <el-input v-model.number="editForm.englishWordCount" />
-    </el-form-item>
-    <el-form-item label="诗词数">
-      <el-input v-model.number="editForm.poetryCount" />
-    </el-form-item>
-  </el-form>
-
-  <template #footer>
-    <el-button @click="editDialog = false">取消</el-button>
-    <el-button type="primary" @click="submitEdit">保存修改</el-button>
-  </template>
-</el-dialog>
+    <el-form :model="editForm" label-width="100px">
+      <el-form-item label="儿童ID">
+        <el-input v-model="editForm.childId" disabled />
+      </el-form-item>
+      <el-form-item label="孩子姓名">
+        <el-input v-model="editForm.childName" />
+      </el-form-item>
+      <el-form-item label="性别">
+        <el-select v-model="editForm.sex">
+          <el-option label="男" :value="1" />
+          <el-option label="女" :value="0" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="家庭ID">
+        <el-input v-model="editForm.familyId" disabled />
+      </el-form-item>
+      <el-form-item label="年龄">
+        <el-input v-model="editForm.age" />
+      </el-form-item>
+      <el-form-item label="身份证号">
+        <el-input v-model="editForm.idNumber" />
+      </el-form-item>
+      <el-form-item label="身高">
+        <el-input v-model.number="editForm.height" />
+      </el-form-item>
+      <el-form-item label="体重">
+        <el-input v-model.number="editForm.weight" />
+      </el-form-item>
+      <el-form-item label="头围">
+        <el-input v-model.number="editForm.headCirc" />
+      </el-form-item>
+      <el-form-item label="认字数">
+        <el-input v-model.number="editForm.chineseWordCount" />
+      </el-form-item>
+      <el-form-item label="单词数">
+        <el-input v-model.number="editForm.englishWordCount" />
+      </el-form-item>
+      <el-form-item label="诗词数">
+        <el-input v-model.number="editForm.poetryCount" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="editDialog = false">取消</el-button>
+      <el-button type="primary" @click="submitEdit">保存修改</el-button>
+    </template>
+  </el-dialog>
 
   <el-dialog v-model="vaccineDialog" title="更新疫苗接种记录" width="500px">
     <el-form label-width="100px">
@@ -188,30 +237,12 @@
       暂无未接种疫苗 ✅
     </div>
     <div v-else style="padding:20px;">
-      <div v-for="(name, idx) in noVaccineList" :key="idx"
-        style="padding:10px; border-bottom:1px solid #eee; font-size:16px;">
+      <div v-for="(name, idx) in noVaccineList" :key="idx" style="padding:10px; border-bottom:1px solid #eee; font-size:16px;">
         • {{ name }}
       </div>
     </div>
     <template #footer>
       <el-button type="primary" @click="noVaccineDialog = false">关闭</el-button>
-    </template>
-  </el-dialog>
-
-  <el-dialog v-model="examineDialog" title="🏥 接受体检预约" width="520px" center>
-    <div style="padding: 25px 15px 15px;">
-      <el-form label-width="100px">
-        <el-form-item label="儿童ID">
-          <el-input v-model="examineForm.childId" placeholder="请输入儿童ID" style="width: 280px" />
-        </el-form-item>
-        <el-form-item label="医生ID">
-          <el-input v-model="examineForm.doctorId" placeholder="请输入医生ID" style="width: 280px" />
-        </el-form-item>
-      </el-form>
-    </div>
-    <template #footer>
-      <el-button @click="examineDialog = false; resetExamine()">关闭</el-button>
-      <el-button type="primary" @click="doExamineAppoint">确认预约</el-button>
     </template>
   </el-dialog>
 
@@ -244,7 +275,6 @@
     </template>
   </el-dialog>
 
-  <!-- ================== 新加弹窗1：生长发育记录 ================== -->
   <el-dialog v-model="growthDialog" title="📈 生长发育记录" width="520px" center>
     <div style="padding:20px">
       <el-form label-width="120px">
@@ -277,21 +307,17 @@
     </template>
   </el-dialog>
 
-  
-
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router'
 const router = useRouter()
 const goHome = () => router.push('/home')
-const goTo = (path) => {
-  router.push(path)
-}
-import { ref } from 'vue';
+const goTo = (path) => { router.push(path) }
+
+import { ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 
-// 引入你所有接口
 import {
   addChild,
   searchChildInfoById,
@@ -301,10 +327,85 @@ import {
   appointExamination,
   recordLive,
   recordGrowth,
-  searchGrowth
+  searchExamination
 } from '../../api/growth';
 
-// ================== 原有功能全部保留 ==================
+// ================== 体检预约：列表 + 预约 ==================
+const examineListDialog = ref(false)
+const examineList = ref([])
+const examineListLoading = ref(false)
+
+const examineDialog = ref(false)
+const examineForm = ref({
+  childId: '',
+  doctorId: '',
+  startTime: ''
+})
+
+// 打开体检列表
+const openExamineList = () => {
+  examineListDialog.value = true
+}
+
+// 加载可预约体检
+const loadExaminationList = async () => {
+  examineListLoading.value = true
+  try {
+    const res = await searchExamination()
+    if (res.code === 200) {
+      examineList.value = res.data || []
+    }
+  } catch (e) {
+    ElMessage.error('加载失败')
+  } finally {
+    examineListLoading.value = false
+  }
+}
+
+// 打开预约弹窗（自动带入信息）
+const openAppointDialog = (row) => {
+  examineForm.value = {
+    childId: '',
+    doctorId: row.doctorId,
+    startTime: row.startTime,
+    endTime: row.endTime,
+    appointTime: ''
+  }
+  examineListDialog.value = false
+  examineDialog.value = true
+}
+
+// 提交预约（带时间校验）
+const doExamineAppoint = async () => {
+  const { childId, doctorId, startTime, endTime, appointTime } = examineForm.value
+
+  if (!childId || !appointTime) {
+    return ElMessage.warning('请填写完整')
+  }
+
+  // ================== 核心时间校验 ==================
+  if (appointTime < startTime || appointTime > endTime) {
+    return ElMessage.warning('预约时间必须在体检开始和结束时间之间')
+  }
+
+  try {
+    // 后端接口现在需要接收 appointTime
+    const res = await appointExamination({
+      childId,
+      doctorId,
+      startTime: appointTime  // 把用户选的时间传过去
+    })
+
+    if (res.code === 200) {
+      ElMessage.success('预约成功')
+      examineDialog.value = false
+    }
+  } catch (e) {
+    ElMessage.error('预约失败')
+  }
+}
+
+// ================== 原有功能 ==================
 const addDialog = ref(false)
 const form = ref({ familyId: '', childName: '', sex: 1, idNumber: '', birthDate: '' })
 const openAddDialog = () => {
@@ -380,24 +481,6 @@ const openNoVaccineDialog = async () => {
   } catch (e) { ElMessage.error('失败') }
 }
 
-const examineDialog = ref(false)
-const examineForm = ref({ childId: '', doctorId: '' })
-const examineResult = ref(null)
-const openExamineDialog = () => { examineDialog.value = true }
-const doExamineAppoint = async () => {
-  const { childId, doctorId } = examineForm.value
-  if (!childId || !doctorId) return ElMessage.warning('请填写完整')
-  try {
-    const res = await appointExamination(examineForm.value)
-    if (res.code === 200) {
-      examineResult.value = res.data
-      ElMessage.success('预约成功')
-      examineDialog.value = false
-    }
-  } catch (e) { ElMessage.error('失败') }
-}
-const resetExamine = () => { examineForm.value = { childId: '', doctorId: '' } }
-
 const liveDialog = ref(false)
 const liveForm = ref({ childId: '', time: '', food: '', sleepTime: '' })
 const openLiveDialog = () => {
@@ -410,21 +493,28 @@ const submitLive = async () => {
   if ([1, 2, 4].includes(time) && !food) return ElMessage.warning('请填写饮食')
   if ([3, 5].includes(time) && !sleepTime) return ElMessage.warning('请填写睡眠')
   try {
-    const params = { childId, time, food: [1, 2, 4].includes(time) ? food : '', sleepTime: [3, 5].includes(time) ? sleepTime : null }
+    const params = {
+      childId,
+      time,
+      food: [1, 2, 4].includes(time) ? food : '',
+      sleepTime: [3, 5].includes(time) ? sleepTime : null
+    }
     await recordLive(params)
     ElMessage.success('记录成功')
     liveDialog.value = false
   } catch (e) { ElMessage.error('失败') }
 }
 
-// ================== 新加：生长发育记录 ==================
 const growthDialog = ref(false)
 const growthForm = ref({
   childId: '', height: null, weight: null, headCirc: null,
   chineseWordCount: 0, englishWordCount: 0, poetryCount: 0
 })
 const openGrowthDialog = () => {
-  growthForm.value = { childId: '', height: null, weight: null, headCirc: null, chineseWordCount: 0, englishWordCount: 0, poetryCount: 0 }
+  growthForm.value = {
+    childId: '', height: null, weight: null, headCirc: null,
+    chineseWordCount: 0, englishWordCount: 0, poetryCount: 0
+  }
   growthDialog.value = true
 }
 const submitGrowth = async () => {
@@ -435,7 +525,6 @@ const submitGrowth = async () => {
     growthDialog.value = false
   } catch (e) { ElMessage.error('提交失败') }
 }
-
 
 </script>
 
@@ -456,7 +545,6 @@ const submitGrowth = async () => {
 .center-box {
   width: 100%;
   max-width: 1200px;
-  /* 变宽 */
   text-align: center;
 }
 
@@ -486,7 +574,6 @@ const submitGrowth = async () => {
 .card-list {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  /* 4列 */
   gap: 20px;
   padding: 0 20px;
 }

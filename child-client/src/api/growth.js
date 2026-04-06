@@ -117,3 +117,9 @@ export const exportLive = (params) => {
     responseType: 'blob'
   })
 }
+export const searchExamination = () => {
+  return request({
+    url: '/child/grow/searchExamination',
+    method: 'GET'
+  })
+}
