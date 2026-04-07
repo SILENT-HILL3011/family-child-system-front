@@ -24,3 +24,11 @@ export const readAllMail = () => {
     method: 'post'
   })
 }
+
+// 检查是否有未读邮件
+export const checkUnReadMails = () => {
+  return request({
+    url: '/child/mail/checkUnReadMails',
+    method: 'get'
+  })
+}
