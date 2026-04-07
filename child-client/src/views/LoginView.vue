@@ -39,18 +39,27 @@
                 </el-form-item>
             </el-form>
         </el-card>
-        <el-dialog v-model="captchaVisible" title="安全验证" width="340px" :close-on-click-modal="false"
-            :close-on-press-escape="false" center>
-            <div class="slider-captcha-box">
-                <!-- 背景图 -->
-                <img :src="captchaBg" class="captcha-bg" />
-                <!-- 滑块 -->
-                <img :src="captchaBlock" class="captcha-block" :style="{ top: `${captchaY}px`, left: `${blockX}px` }"
-                    @mousedown="startDrag" />
-            </div>
 
-            <div style="text-align:center; margin-top:15px;">
-                <el-button type="primary" @click="confirmCaptcha">完成验证</el-button>
+        <!-- Google 九宫格点选验证码弹窗 -->
+        <el-dialog v-model="captchaVisible" title="安全验证" width="400px"
+            :close-on-click-modal="false" :close-on-press-escape="false" center>
+            <div style="text-align:center; margin-bottom:10px; font-weight:bold;">
+                {{ captchaTip }}
+            </div>
+            <div class="grid-3x3">
+                <div
+                    v-for="(img, idx) in captchaImages"
+                    :key="idx"
+                    class="grid-item"
+                    :class="{ selected: userSelect.includes(idx) }"
+                    @click="toggleSelect(idx)"
+                >
+                    <img :src="img" alt="captcha" />
+                </div>
+            </div>
+            <div style="text-align:center; margin-top:15px; display:flex; gap:10px; justify-content:center;">
+                <el-button @click="refreshCaptcha">刷新</el-button>
+                <el-button type="primary" @click="confirmCaptcha">确认验证</el-button>
             </div>
         </el-dialog>
     </div>
@@ -63,7 +72,6 @@ import { useRouter } from 'vue-router'
 import { userLogin } from '../api/user'
 import request from '../utils/request'
 
-
 const router = useRouter()
 const loginFormRef = ref(null)
 const isLoading = ref(false)
@@ -74,14 +82,12 @@ const loginForm = ref({
   password: ''
 })
 
-// 滑动拼图弹窗
+// 九宫格验证码
 const captchaVisible = ref(false)
-const captchaBg = ref('')
-const captchaBlock = ref('')
-const captchaY = ref(0)
 const captchaKey = ref('')
-const blockX = ref(0)
-let startX = 0
+const captchaTip = ref('')
+const captchaImages = ref([])
+const userSelect = ref([])
 
 // 校验规则
 const loginRules = ref({
@@ -95,53 +101,61 @@ const loginRules = ref({
   ]
 })
 
-// 点击登录 → 弹出拼图
+// 点击登录 → 弹出九宫格
 const handleLogin = async () => {
   await loginFormRef.value.validate()
-
-  // 获取滑动验证码
-  const { data: res } = await request.get('/child/user/slider/get')
-  captchaBg.value = res.bg
-  captchaBlock.value = res.block
-  captchaY.value = res.y
-  captchaKey.value = res.key
-  blockX.value = 0
-
-  // 打开弹窗
+  refreshCaptcha()
   captchaVisible.value = true
 }
 
-// 滑块拖动
-const startDrag = (e) => {
-  startX = e.clientX - blockX.value
-  document.onmousemove = (ev) => {
-    let x = ev.clientX - startX
-    x = Math.max(0, Math.min(x, 250))
-    blockX.value = x
-  }
-  document.onmouseup = () => {
-    document.onmousemove = null
+// 刷新验证码
+const refreshCaptcha = async () => {
+  userSelect.value = []
+  const { data } = await request.get('/captcha/get-image')
+  captchaKey.value = data.captchaKey
+  captchaTip.value = data.tip
+  captchaImages.value = data.images
+}
+
+// 切换选中格子
+const toggleSelect = (idx) => {
+  if (userSelect.value.includes(idx)) {
+    userSelect.value = userSelect.value.filter(i => i !== idx)
+  } else {
+    userSelect.value.push(idx)
   }
 }
 
-// 验证通过 → 真正登录
+// 验证通过 → 登录
 const confirmCaptcha = async () => {
-  captchaVisible.value = false
-  isLoading.value = true
+  if (userSelect.value.length === 0) {
+    ElMessage.warning('请选择对应的图片')
+    return
+  }
 
   try {
+    // 先校验验证码
+    await request.post('/captcha/check-image', {
+      captchaKey: captchaKey.value,
+      userSelect: userSelect.value
+    })
+
+    // 验证成功 → 关闭弹窗
+    captchaVisible.value = false
+    isLoading.value = true
+
+    // 调用你原来的登录接口（完全不变！）
     const res = await userLogin({
       phoneNumber: loginForm.value.phoneNumber.trim(),
-      password: loginForm.value.password.trim(),
-      captchaKey: captchaKey.value,
-      moveX: blockX.value
+      password: loginForm.value.password.trim()
     })
 
     localStorage.setItem('token', res.data)
     ElMessage.success('登录成功')
     router.push('/home')
   } catch (err) {
-    ElMessage.error('登录失败：验证失败或账号密码错误')
+    ElMessage.error('验证失败或账号密码错误')
+    refreshCaptcha()
   } finally {
     isLoading.value = false
   }
@@ -209,25 +223,29 @@ const goToRegister = () => {
   text-align: center;
 }
 
-/* 滑动拼图样式 */
-.slider-captcha-box {
-  position: relative;
-  width: 300px;
-  height: 180px;
-  margin: 0 auto;
+/* 九宫格样式 */
+.grid-3x3 {
+  display: grid;
+  grid-template-columns: repeat(3, 100px);
+  grid-template-rows: repeat(3, 100px);
+  gap: 4px;
+  justify-content: center;
 }
-
-.captcha-bg {
+.grid-item {
+  width: 100px;
+  height: 100px;
+  border: 1px solid #eee;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: 4px;
+}
+.grid-item img {
   width: 100%;
   height: 100%;
-  user-select: none;
+  object-fit: cover;
 }
-
-.captcha-block {
-  position: absolute;
-  width: 50px;
-  height: 50px;
-  cursor: pointer;
-  user-select: none;
+.grid-item.selected {
+  border-color: #1890ff;
+  background: #e6f7ff;
 }
 </style>
