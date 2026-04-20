@@ -101,14 +101,12 @@ const loginRules = ref({
   ]
 })
 
-// 点击登录 → 弹出九宫格
 const handleLogin = async () => {
   await loginFormRef.value.validate()
   refreshCaptcha()
   captchaVisible.value = true
 }
 
-// 刷新验证码
 const refreshCaptcha = async () => {
   userSelect.value = []
   const { data } = await request.get('/captcha/get-image')
@@ -117,7 +115,6 @@ const refreshCaptcha = async () => {
   captchaImages.value = data.images
 }
 
-// 切换选中格子
 const toggleSelect = (idx) => {
   if (userSelect.value.includes(idx)) {
     userSelect.value = userSelect.value.filter(i => i !== idx)
@@ -126,25 +123,19 @@ const toggleSelect = (idx) => {
   }
 }
 
-// 验证通过 → 登录
 const confirmCaptcha = async () => {
   if (userSelect.value.length === 0) {
     ElMessage.warning('请选择对应的图片')
     return
   }
-
   try {
-    // 先校验验证码
     await request.post('/captcha/check-image', {
       captchaKey: captchaKey.value,
       userSelect: userSelect.value
     })
-
-    // 验证成功 → 关闭弹窗
     captchaVisible.value = false
     isLoading.value = true
 
-    // 调用你原来的登录接口（完全不变！）
     const res = await userLogin({
       phoneNumber: loginForm.value.phoneNumber.trim(),
       password: loginForm.value.password.trim()
@@ -161,7 +152,6 @@ const confirmCaptcha = async () => {
   }
 }
 
-// 去注册
 const goToRegister = () => {
   router.push('/register')
 }

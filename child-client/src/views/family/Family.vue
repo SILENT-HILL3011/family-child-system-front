@@ -17,7 +17,6 @@
             <p>请点击左侧菜单选择对应功能</p>
         </div>
 
-        <!-- 发布任务弹窗（你原来的） -->
         <el-dialog v-model="publishVisible" title="发布家庭任务" width="500px">
             <el-form :model="taskForm" label-width="100px" style="margin-top:20px;">
                 <el-form-item label="任务名称">
@@ -31,9 +30,7 @@
             </template>
         </el-dialog>
 
-        <!-- ====================== -->
-        <!-- 权限分配弹窗（新增） -->
-        <!-- ====================== -->
+
         <el-dialog v-model="permissionVisible" title="权限分配" width="500px">
             <el-form label-width="100px" style="margin-top:20px;">
                 <el-form-item label="手机号">
@@ -124,11 +121,9 @@ const doPublishTask = async () => {
     }
 }
 
-// ======================
-// 权限修改提交（新增）
-// ======================
+
 const doChangeRole = async () => {
-    if (!roleForm.phoneNumber || !roleForm.role) {
+    if (!roleForm.phoneNumber || roleForm.role === null || roleForm.role === '') {
         ElMessage.warning('请填写完整信息')
         return
     }

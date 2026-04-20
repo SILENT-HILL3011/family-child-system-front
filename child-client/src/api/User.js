@@ -59,6 +59,13 @@ export const getFamilyId = () => {
   return request({
     url: '/child/user/getFamilyId',
     method: 'get'
-    // 自动携带token，无需手动传参
+  })
+}
+
+export const kickOut = (memberId)=>{
+  return request({
+    url: '/child/user/kickOut',
+    method: 'post',
+    params:{memberId}
   })
 }
