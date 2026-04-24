@@ -1,35 +1,42 @@
 import request from "../utils/request"
 
-// ================== 基础信息 ==================
 export const addChild = (data) => {
-    return request({
-        url: '/child/grow/addChild',
-        method: "post",
-        params: data
-    })
+  return request({
+    url: '/child/grow/addChild',
+    method: "post",
+    params: data
+  })
+}
+
+export const delChild = (data) => {
+  return request({
+    url: '/child/grow/deleteChild',
+    method: 'post',
+    params: data
+  })
 }
 
 export const searchChildInfo = (data) => {
-    return request({
-        url: '/child/grow/searchChildInfo',
-        method: "post",
-        params: data
-    })
+  return request({
+    url: '/child/grow/searchChildInfo',
+    method: "post",
+    params: data
+  })
 }
 
 export const searchChildInfoById = (data) => {
-    return request({
-        url: '/child/grow/searchChildById',
-        method: "post",
-        params: data
-    })
+  return request({
+    url: '/child/grow/searchChildById',
+    method: "post",
+    params: data
+  })
 }
 
 export const updateChildInfo = (data) => {
   return request({
     url: '/child/grow/updateChildInfo',
     method: 'post',
-    data: data   
+    data: data
   })
 }
 
@@ -67,7 +74,7 @@ export const searchVaccineByChildId = (data) => {
   })
 }
 
-export const updateVaccine = (data)=> {
+export const updateVaccine = (data) => {
   return request({
     url: '/child/grow/updateVaccine',
     method: 'post',
@@ -92,7 +99,6 @@ export const appointExamination = (data) => {
   })
 }
 
-// ================== 生活记录（饮食/睡眠） ==================
 export const recordLive = (data) => {
   return request({
     url: '/child/grow/recordLive',
@@ -105,6 +111,22 @@ export const searchLive = (data) => {
   return request({
     url: '/child/grow/searchLive',
     method: "get",
+    params: data
+  })
+}
+
+export const updateLiveRecord = (data) => {
+  return request({
+    url: '/child/grow/updateLiveRecord',
+    method: "post",
+    params: data
+  })
+}
+
+export const deleteLiveRecord = (data) => {
+  return request({
+    url: '/child/grow/deleteLiveRecord',
+    method: "post",
     params: data
   })
 }

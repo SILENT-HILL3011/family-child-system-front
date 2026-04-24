@@ -3,71 +3,62 @@
     <div class="center-box">
       <div class="back-btn" @click="goHome">返回首页</div>
       <h2>📈 成长档案与监测</h2>
-
       <div class="card-list">
-        <!-- 1 -->
         <div class="card">
           <span class="icon">📝</span>
           <p>添加儿童</p>
           <el-button type="primary" @click="openAddDialog">进入</el-button>
         </div>
-        <!-- 2 -->
         <div class="card">
           <span class="icon">🎯 </span>
           <p>查看儿童信息</p>
           <el-button type="primary" @click="goTo('/child-list')">进入</el-button>
         </div>
-        <!-- 3 -->
         <div class="card">
           <span class="icon">🏆</span>
           <p>更新儿童信息</p>
           <el-button type="primary" @click="openUpdateDialog">进入</el-button>
         </div>
-        <!-- 4 -->
         <div class="card">
           <span class="icon">📊 </span>
           <p>疫苗查询</p>
           <el-button type="primary" @click="goTo('/vaccine-query')">进入</el-button>
         </div>
-        <!-- 5 -->
         <div class="card">
           <span class="icon">🧩</span>
           <p>查看今年未接种疫苗</p>
           <el-button type="primary" @click="openNoVaccineDialog">进入</el-button>
         </div>
-        <!-- 6 -->
         <div class="card">
           <span class="icon">🧩</span>
           <p>更新疫苗记录</p>
           <el-button type="primary" @click="openVaccineDialog">进入</el-button>
         </div>
-        <!-- 7 -->
         <div class="card">
           <span class="icon">🎁 </span>
           <p>接受体检</p>
           <el-button type="primary" @click="openExamineList">进入</el-button>
         </div>
-        <!-- 8 -->
+        <div class="card">
+          <span class="icon">🏥</span>
+          <p>我的体检预约</p>
+          <el-button type="primary" @click="goTo('/my-examination')">进入</el-button>
+        </div>
         <div class="card">
           <span class="icon">📚 </span>
           <p>每日记录</p>
           <el-button type="primary" @click="openLiveDialog">进入</el-button>
         </div>
-        <!-- 9 -->
         <div class="card">
           <span class="icon">⚡</span>
           <p>查询记录</p>
           <el-button type="primary" @click="goTo('/search-live')">进入</el-button>
         </div>
-
-        <!-- 10 -->
         <div class="card">
           <span class="icon">📈</span>
           <p>生长发育记录</p>
           <el-button type="primary" @click="openGrowthDialog">进入</el-button>
         </div>
-
-        <!-- 11 -->
         <div class="card">
           <span class="icon">📉</span>
           <p>成长趋势查询</p>
@@ -78,62 +69,51 @@
     </div>
   </div>
 
-  <!-- ================== 可预约体检列表 ================== -->
-  <!-- ================== 可预约体检列表 ================== -->
-<el-dialog v-model="examineListDialog" title="🏥 可预约体检列表" width="700px" @open="loadExaminationList">
-  <div v-if="examineListLoading" style="text-align:center;padding:40px">加载中...</div>
-  <div v-else style="padding:10px">
-    <div v-if="examineList.length === 0" style="padding:40px;text-align:center;color:#999">暂无可预约体检</div>
-    <el-table v-else :data="examineList" border size="small">
-      <el-table-column label="医生ID" prop="doctorId" />
-      <el-table-column label="体检开始" prop="startTime" />
-      <el-table-column label="体检结束" prop="endTime" />
-      <el-table-column label="操作">
-        <template #default="{ row }">
-          <el-button type="success" size="small" @click="openAppointDialog(row)">预约</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-  </div>
-</el-dialog>
+  <el-dialog v-model="examineListDialog" title="🏥 可预约体检列表" width="700px" @open="loadExaminationList">
+    <div v-if="examineListLoading" style="text-align:center;padding:40px">加载中...</div>
+    <div v-else style="padding:10px">
+      <div v-if="examineList.length === 0" style="padding:40px;text-align:center;color:#999">暂无可预约体检</div>
+      <el-table v-else :data="examineList" border size="small">
+        <el-table-column label="医生ID" prop="doctorId" />
+        <el-table-column label="体检开始" prop="startTime" />
+        <el-table-column label="体检结束" prop="endTime" />
+        <el-table-column label="操作">
+          <template #default="{ row }">
+            <el-button type="success" size="small" @click="openAppointDialog(row)">预约</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+  </el-dialog>
 
-<!-- ================== 预约弹窗（加了预约时间） ================== -->
-<el-dialog v-model="examineDialog" title="确认体检预约" width="520px" center>
-  <div style="padding:25px 15px 15px;">
-    <el-form label-width="100px">
-      <el-form-item label="儿童ID">
-        <el-input v-model="examineForm.childId" placeholder="请输入儿童ID" style="width:100%" />
-      </el-form-item>
-      <el-form-item label="医生ID">
-        <el-input v-model="examineForm.doctorId" disabled style="width:100%" />
-      </el-form-item>
-      <el-form-item label="体检开始">
-        <el-input v-model="examineForm.startTime" disabled style="width:100%" />
-      </el-form-item>
-      <el-form-item label="体检结束">
-        <el-input v-model="examineForm.endTime" disabled style="width:100%" />
-      </el-form-item>
+  <el-dialog v-model="examineDialog" title="确认体检预约" width="520px" center>
+    <div style="padding:25px 15px 15px;">
+      <el-form label-width="100px">
+        <el-form-item label="儿童ID">
+          <el-input v-model="examineForm.childId" placeholder="请输入儿童ID" style="width:100%" />
+        </el-form-item>
+        <el-form-item label="医生ID">
+          <el-input v-model="examineForm.doctorId" disabled style="width:100%" />
+        </el-form-item>
+        <el-form-item label="体检开始">
+          <el-input v-model="examineForm.startTime" disabled style="width:100%" />
+        </el-form-item>
+        <el-form-item label="体检结束">
+          <el-input v-model="examineForm.endTime" disabled style="width:100%" />
+        </el-form-item>
 
-      <!-- ================== 关键：用户自选预约时间 ================== -->
-      <el-form-item label="预约时间">
-        <el-date-picker
-          v-model="examineForm.appointTime"
-          type="datetime"
-          placeholder="请选择预约时间"
-          format="YYYY-MM-DD HH:mm:ss"
-          value-format="YYYY-MM-DD HH:mm:ss"
-          style="width:100%"
-        />
-      </el-form-item>
-    </el-form>
-  </div>
-  <template #footer>
-    <el-button @click="examineDialog = false">取消</el-button>
-    <el-button type="primary" @click="doExamineAppoint">确认预约</el-button>
-  </template>
-</el-dialog>
+        <el-form-item label="预约时间">
+          <el-date-picker v-model="examineForm.appointTime" type="datetime" placeholder="请选择预约时间"
+            format="YYYY-MM-DD HH:mm:ss" value-format="YYYY-MM-DD HH:mm:ss" style="width:100%" />
+        </el-form-item>
+      </el-form>
+    </div>
+    <template #footer>
+      <el-button @click="examineDialog = false">取消</el-button>
+      <el-button type="primary" @click="doExamineAppoint">确认预约</el-button>
+    </template>
+  </el-dialog>
 
-  <!-- 其他弹窗全部保留不变 -->
   <el-dialog v-model="addDialog" title="添加孩子信息" width="500px">
     <el-form :model="form" label-width="100px">
       <el-form-item label="家庭ID">
@@ -237,7 +217,8 @@
       暂无未接种疫苗 ✅
     </div>
     <div v-else style="padding:20px;">
-      <div v-for="(name, idx) in noVaccineList" :key="idx" style="padding:10px; border-bottom:1px solid #eee; font-size:16px;">
+      <div v-for="(name, idx) in noVaccineList" :key="idx"
+        style="padding:10px; border-bottom:1px solid #eee; font-size:16px;">
         • {{ name }}
       </div>
     </div>
@@ -254,17 +235,17 @@
         </el-form-item>
         <el-form-item label="记录类型">
           <el-select v-model="liveForm.time" placeholder="请选择" style="width:280px">
-            <el-option label="早饭" :value="1" />
-            <el-option label="午饭" :value="2" />
-            <el-option label="午休" :value="3" />
-            <el-option label="晚饭" :value="4" />
-            <el-option label="晚休" :value="5" />
+            <el-option label="早饭" value="早餐" />
+            <el-option label="午饭" value="午餐" />
+            <el-option label="午休" value="午睡" />
+            <el-option label="晚饭" value="晚餐" />
+            <el-option label="晚休" value="晚睡" />
           </el-select>
         </el-form-item>
-        <el-form-item label="饮食内容" v-if="[1, 2, 4].includes(liveForm.time)">
+        <el-form-item label="饮食内容" v-if="['早餐','午餐','晚餐'].includes(liveForm.time)">
           <el-input v-model="liveForm.food" placeholder="请输入饮食" style="width:280px" />
         </el-form-item>
-        <el-form-item label="睡眠时长" v-if="[3, 5].includes(liveForm.time)">
+        <el-form-item label="睡眠时长" v-if="['午睡','晚睡'].includes(liveForm.time)">
           <el-input v-model.number="liveForm.sleepTime" placeholder="请输入小时" style="width:280px" />
         </el-form-item>
       </el-form>
@@ -330,7 +311,6 @@ import {
   searchExamination
 } from '../../api/growth';
 
-// ================== 体检预约：列表 + 预约 ==================
 const examineListDialog = ref(false)
 const examineList = ref([])
 const examineListLoading = ref(false)
@@ -342,12 +322,10 @@ const examineForm = ref({
   startTime: ''
 })
 
-// 打开体检列表
 const openExamineList = () => {
   examineListDialog.value = true
 }
 
-// 加载可预约体检
 const loadExaminationList = async () => {
   examineListLoading.value = true
   try {
@@ -362,7 +340,6 @@ const loadExaminationList = async () => {
   }
 }
 
-// 打开预约弹窗（自动带入信息）
 const openAppointDialog = (row) => {
   examineForm.value = {
     childId: '',
@@ -375,7 +352,6 @@ const openAppointDialog = (row) => {
   examineDialog.value = true
 }
 
-// 提交预约（带时间校验）
 const doExamineAppoint = async () => {
   const { childId, doctorId, startTime, endTime, appointTime } = examineForm.value
 
@@ -383,17 +359,15 @@ const doExamineAppoint = async () => {
     return ElMessage.warning('请填写完整')
   }
 
-  // ================== 核心时间校验 ==================
   if (appointTime < startTime || appointTime > endTime) {
     return ElMessage.warning('预约时间必须在体检开始和结束时间之间')
   }
 
   try {
-    // 后端接口现在需要接收 appointTime
     const res = await appointExamination({
       childId,
       doctorId,
-      startTime: appointTime  // 把用户选的时间传过去
+      startTime: appointTime
     })
 
     if (res.code === 200) {
@@ -405,7 +379,6 @@ const doExamineAppoint = async () => {
   }
 }
 
-// ================== 原有功能 ==================
 const addDialog = ref(false)
 const form = ref({ familyId: '', childName: '', sex: 1, idNumber: '', birthDate: '' })
 const openAddDialog = () => {
@@ -490,19 +463,25 @@ const openLiveDialog = () => {
 const submitLive = async () => {
   const { childId, time, food, sleepTime } = liveForm.value
   if (!childId || !time) return ElMessage.warning('请填写完整')
-  if ([1, 2, 4].includes(time) && !food) return ElMessage.warning('请填写饮食')
-  if ([3, 5].includes(time) && !sleepTime) return ElMessage.warning('请填写睡眠')
+  if ((time === '午睡' || time === '晚睡') && !sleepTime) {
+    return ElMessage.warning('请填写睡眠时长')
+  }
+  if ((time === '早餐' || time === '午餐' || time === '晚餐') && !food) {
+    return ElMessage.warning('请填写饮食内容')
+  }
   try {
     const params = {
       childId,
-      time,
-      food: [1, 2, 4].includes(time) ? food : '',
-      sleepTime: [3, 5].includes(time) ? sleepTime : null
+      time,               
+      food: food || null, 
+      sleepTime
     }
     await recordLive(params)
     ElMessage.success('记录成功')
     liveDialog.value = false
-  } catch (e) { ElMessage.error('失败') }
+  } catch (e) {
+    ElMessage.error('提交失败')
+  }
 }
 
 const growthDialog = ref(false)

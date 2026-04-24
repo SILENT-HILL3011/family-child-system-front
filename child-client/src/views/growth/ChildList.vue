@@ -5,14 +5,12 @@
       <el-button @click="goBack">返回成长中心</el-button>
     </div>
 
-    <!-- 页码输入查询 → 和你家页面完全一样 -->
     <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
       <span>页码：</span>
       <el-input v-model.number="pageNum" style="width: 120px" placeholder="输入页码" />
       <el-button type="primary" @click="getList">查询</el-button>
     </div>
 
-    <!-- 儿童表格 -->
     <el-table :data="childList" border style="width: 100%; margin-bottom: 20px;">
         <el-table-column label="儿童id" prop="childId" />
         <el-table-column label="家庭id" prop="familyId" />
@@ -24,9 +22,13 @@
       </el-table-column>
       <el-table-column label="身份证号" prop="idNumber" />
       <el-table-column label="年龄" prop="age" />
+      <el-table-column label="操作" width="100">
+        <template #default="{row}">
+          <el-button type="danger" size="small" @click="handleDelete(row)">删除</el-button>
+        </template>
+      </el-table-column>
     </el-table>
 
-    <!-- 分页组件 → 完全一样 -->
     <el-pagination v-model:current-page="pageNum" :page-size="10" :total="total"
       layout="total, prev, pager, next, jumper" @current-change="getList" />
   </div>
@@ -35,8 +37,8 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { searchChildInfo } from '../../api/growth'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { searchChildInfo, delChild } from '../../api/growth'
 
 const router = useRouter()
 
@@ -49,7 +51,6 @@ const getList = async () => {
     ElMessage.warning('页码必须 ≥ 1')
     return
   }
-
   try {
     const familyId = localStorage.getItem('familyId')
     if (!familyId) {
@@ -71,6 +72,22 @@ const getList = async () => {
   }
 }
 
+const handleDelete = async(row)=>{
+  await ElMessageBox.confirm('删除后儿童信息及关联数据将无法恢复，确定删除吗？',
+    '警告',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+  try {
+    await delChild({ childId: row.childId })
+    ElMessage.success('删除成功')
+    getList()
+  }catch (err) {
+    ElMessage.error('删除失败')
+  }
+}
 // 加载第一页
 getList()
 

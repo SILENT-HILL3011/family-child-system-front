@@ -1,6 +1,5 @@
 <template>
     <div class="login-container">
-        <!-- 背景装饰 -->
         <div class="bg-decoration"></div>
 
         <el-card class="login-card" shadow="hover">
@@ -76,13 +75,11 @@ const router = useRouter()
 const loginFormRef = ref(null)
 const isLoading = ref(false)
 
-// 登录表单
 const loginForm = ref({
   phoneNumber: '',
   password: ''
 })
 
-// 九宫格验证码
 const captchaVisible = ref(false)
 const captchaKey = ref('')
 const captchaTip = ref('')
@@ -145,8 +142,12 @@ const confirmCaptcha = async () => {
     ElMessage.success('登录成功')
     router.push('/home')
   } catch (err) {
-    ElMessage.error('验证失败或账号密码错误')
-    refreshCaptcha()
+    if (err.config.url === '/captcha/check-image') {
+      ElMessage.error('验证码选择错误，请重试！')
+      refreshCaptcha()
+    } else {
+      ElMessage.error('账号或密码错误，请重新输入！')
+    }
   } finally {
     isLoading.value = false
   }
