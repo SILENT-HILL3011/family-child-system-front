@@ -5,21 +5,31 @@
         </div>
 
         <div style="display: flex; gap: 20px; align-items: flex-start">
-            <!-- 左侧图标 -->
             <div class="card">
                 <span class="icon">🗓️</span>
                 <p>疫苗时间轴</p>
                 <el-button type="primary" @click="goTo('/vaccine-timeline')">进入</el-button>
             </div>
 
-            <!-- 中间输入儿童ID -->
             <div style="flex:1">
                 <h3>查询儿童疫苗</h3>
-                <el-input v-model="childId" placeholder="请输入儿童ID" style="width:300px; margin-right:10px" />
+                
+                <el-select 
+                    v-model="childId" 
+                    placeholder="请选择儿童"
+                    style="width:300px; margin-right:10px"
+                >
+                    <el-option
+                        v-for="item in childList"
+                        :key="item.childId"
+                        :label="item.childName"
+                        :value="item.childId"
+                    />
+                </el-select>
+
                 <el-button type="primary" @click="getVaccineRecord">查询</el-button>
             </div>
 
-            <!-- 右侧疫苗记录表单 -->
             <div style="flex:2">
                 <el-card shadow="hover">
                     <h3>疫苗接种记录</h3>
@@ -59,13 +69,20 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { searchVaccineByChildId } from '../../api/growth'
 import { useRouter } from 'vue-router'
+
+import { 
+  searchVaccineByChildId,
+  searchChildInfo  
+} from '../../api/growth'
+
 const router = useRouter()
 
 const childId = ref('')
+const childList = ref([]) 
+
 const data = reactive({
     hbvTimes: '', hbvLastTime: '',
     havTimes: '', havLastTime: '',
@@ -78,9 +95,23 @@ const data = reactive({
     gacpvTimes: '', gacpvLastTime: '',
 })
 
+onMounted(async () => {
+  try {
+    const familyId = localStorage.getItem('familyId')
+    const res = await searchChildInfo({
+      familyId: familyId
+    })
+    if (res.code === 200) {
+      childList.value = res.data || []
+    }
+  } catch (e) {
+    ElMessage.error('加载儿童列表失败')
+  }
+})
+
 const getVaccineRecord = async () => {
   if (!childId.value) {
-    ElMessage.warning('请输入儿童ID')
+    ElMessage.warning('请选择儿童')
     return
   }
 
@@ -90,7 +121,6 @@ const getVaccineRecord = async () => {
     })
 
     if (res.code === 200) {
-      // ✅ 手动映射后端小驼峰 → 前端变量
       data.hbvTimes = res.data.hbvtimes ?? ''
       data.hbvLastTime = res.data.hbvlastTime ?? ''
       

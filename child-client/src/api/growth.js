@@ -40,7 +40,6 @@ export const updateChildInfo = (data) => {
   })
 }
 
-// ================== 生长发育 ==================
 export const recordGrowth = (data) => {
   return request({
     url: '/child/grow/recordGrowth',
@@ -57,6 +56,22 @@ export const searchGrowth = (data) => {
   })
 }
 
+export const updateGrowthTrend = (data) => {
+  return request({
+    url: '/child/grow/updateGrowthTrend',
+    method: 'post',
+    data: data
+  })
+}
+
+export const deleteGrowthTrend = (data) => {
+  return request({
+    url: '/child/grow/deleteGrowthTrend',
+    method: 'post',
+    params: data
+  })
+}
+
 export const updateGrowthRecord = (data) => {
   return request({
     url: '/child/grow/updateGrowthRecord',
@@ -65,7 +80,6 @@ export const updateGrowthRecord = (data) => {
   })
 }
 
-// ================== 疫苗 ==================
 export const searchVaccineByChildId = (data) => {
   return request({
     url: '/child/grow/searchVaccine',
@@ -90,7 +104,6 @@ export const searchVaccineThisYear = (data) => {
   })
 }
 
-// ================== 体检 ==================
 export const appointExamination = (data) => {
   return request({
     url: '/child/grow/appointExamination',

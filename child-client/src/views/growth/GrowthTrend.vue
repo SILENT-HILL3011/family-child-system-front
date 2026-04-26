@@ -1,47 +1,96 @@
 <template>
   <div class="trend-page">
     <div class="container">
-      <!-- 返回按钮 固定在左上角 永远能点到 -->
       <div class="back-btn" @click="goBack">← 返回成长档案</div>
 
       <div class="title">📊 成长趋势分析</div>
 
-      <!-- 查询面板 -->
       <div class="query-box">
         <el-form :model="query" label-width="100px" inline>
-          <el-form-item label="儿童ID">
-            <el-input v-model="query.childId" style="width:220px" placeholder="请输入" />
+          <!-- 儿童ID 改为 下拉选择儿童 -->
+          <el-form-item label="选择儿童">
+            <el-select v-model="query.childId" style="width:220px" placeholder="请选择儿童">
+              <el-option v-for="item in childList" :key="item.childId" :label="item.childName" :value="item.childId" />
+            </el-select>
           </el-form-item>
-          <el-form-item label="查询类型">
+
+          <el-form-item label="展示方式">
             <el-select v-model="query.type" style="width:160px">
-              <el-option label="按日查询" value="day" />
-              <el-option label="按周查询" value="week" />
+              <el-option label="列表展示" value="day" />
+              <el-option label="图形展示" value="week" />
             </el-select>
           </el-form-item>
         </el-form>
-        <el-button type="primary" @click="loadData">查询并生成图表</el-button>
+        <el-button type="primary" @click="loadData">查询并生成</el-button>
       </div>
 
-      <!-- 按日 → 列表 -->
       <div v-if="query.type === 'day' && list.length" class="table-box">
         <el-table :data="list" border size="small" style="width:100%">
-          <el-table-column label="日期" prop="recordDate" />
-          <el-table-column label="身高(mm)" prop="height" />
-          <el-table-column label="体重(g)" prop="weight" />
-          <el-table-column label="头围(mm)" prop="headCirc" />
-          <el-table-column label="识字" prop="chineseWordCount" />
-          <el-table-column label="单词" prop="englishWordCount" />
-          <el-table-column label="诗词" prop="poetryCount" />
+          <!-- 日期格式化：绑定 formatter -->
+          <el-table-column label="日期" prop="recordDate" :formatter="formatDate" />
+
+          <!-- 恢复 prop，确保数据能显示 -->
+          <el-table-column label="身高(cm)" prop="height">
+            <template #default="scope">
+              <el-input v-if="editId === scope.row.id" v-model="scope.row.height" size="small" />
+              <span v-else>{{ scope.row.height || '' }}</span>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="体重(斤)" prop="weight">
+            <template #default="scope">
+              <el-input v-if="editId === scope.row.id" v-model="scope.row.weight" size="small" />
+              <span v-else>{{ scope.row.weight || '' }}</span>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="头围(cm)" prop="headCirc">
+            <template #default="scope">
+              <el-input v-if="editId === scope.row.id" v-model="scope.row.headCirc" size="small" />
+              <span v-else>{{ scope.row.headCirc || '' }}</span>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="识字" prop="chineseWordCount">
+            <template #default="scope">
+              <el-input v-if="editId === scope.row.id" v-model="scope.row.chineseWordCount" size="small" />
+              <span v-else>{{ scope.row.chineseWordCount || 0 }}</span>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="单词" prop="englishWordCount">
+            <template #default="scope">
+              <el-input v-if="editId === scope.row.id" v-model="scope.row.englishWordCount" size="small" />
+              <span v-else>{{ scope.row.englishWordCount || 0 }}</span>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="诗词" prop="poetryCount">
+            <template #default="scope">
+              <el-input v-if="editId === scope.row.id" v-model="scope.row.poetryCount" size="small" />
+              <span v-else>{{ scope.row.poetryCount || 0 }}</span>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="操作" width="220">
+            <template #default="scope">
+              <div v-if="editId === scope.row.id">
+                <el-button type="success" size="small" @click="submitEdit(scope.row)">提交</el-button>
+                <el-button size="small" @click="cancelEdit">取消</el-button>
+              </div>
+              <div v-else>
+                <el-button type="primary" size="small" @click="toEdit(scope.row.id)">修改</el-button>
+                <el-button type="danger" size="small" @click="delRow(scope.row.id)">删除</el-button>
+              </div>
+            </template>
+          </el-table-column>
         </el-table>
       </div>
 
-      <!-- 按周 → 图表（缩小版） -->
       <div v-if="query.type === 'week' && list.length" class="chart-wrapper">
-
         <div class="chart-item">
           <div ref="chartBody" class="chart-mini"></div>
         </div>
-
         <div class="chart-row">
           <div class="chart-item flex-1">
             <div ref="chartLearnBar" class="chart-mini"></div>
@@ -50,11 +99,9 @@
             <div ref="chartLearnLine" class="chart-mini"></div>
           </div>
         </div>
-
         <div class="chart-item">
           <div ref="chartLearnPie" class="chart-mini"></div>
         </div>
-
       </div>
 
       <div v-if="loaded && list.length === 0" style="padding:20px;color:#999;text-align:center">
@@ -65,24 +112,21 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, nextTick,onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import * as echarts from 'echarts'
-import { searchGrowth } from '../../api/growth'
+
+import { searchGrowth, updateGrowthTrend, deleteGrowthTrend,searchChildInfo } from '../../api/growth'
 
 const router = useRouter()
-const goBack = () => {
-  router.push('/growth')
-}
+const goBack = () => { router.push('/growth') }
 
-const query = ref({
-  childId: '',
-  type: 'week'
-})
-
+const query = ref({ childId: '', type: 'week' })
 const list = ref([])
 const loaded = ref(false)
+const editId = ref('')
+const childList = ref([])
 
 const chartBody = ref(null)
 const chartLearnBar = ref(null)
@@ -91,38 +135,70 @@ const chartLearnPie = ref(null)
 
 let myChartBody, myChartLearnBar, myChartLearnLine, myChartLearnPie
 
+// 日期格式化
+const formatDate = (row) => {
+  if (!row || !row.recordDate) return ''
+  const date = new Date(row.recordDate)
+  if (isNaN(date.getTime())) return row.recordDate
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 const initCharts = () => {
   if (!chartBody.value) return
-  if (!myChartBody) myChartBody = echarts.init(chartBody.value)
-  if (!myChartLearnBar) myChartLearnBar = echarts.init(chartLearnBar.value)
-  if (!myChartLearnLine) myChartLearnLine = echarts.init(chartLearnLine.value)
-  if (!myChartLearnPie) myChartLearnPie = echarts.init(chartLearnPie.value)
+  myChartBody = echarts.init(chartBody.value)
+  myChartLearnBar = echarts.init(chartLearnBar.value)
+  myChartLearnLine = echarts.init(chartLearnLine.value)
+  myChartLearnPie = echarts.init(chartLearnPie.value)
 }
 
 const loadData = async () => {
   const { childId, type } = query.value
-  if (!childId) return ElMessage.warning('请输入儿童ID')
-
-  const days = type === 'day' ? 1 : 7
+  if (!childId) { ElMessage.warning('请输入儿童ID'); return }
   try {
-    const res = await searchGrowth({ childId, days })
+    const res = await searchGrowth({ childId })
     if (res.code === 200) {
       list.value = res.data || []
       loaded.value = true
       await nextTick()
-
-      if (type === 'week') {
-        initCharts()
-        renderAllCharts()
-      }
+      if (type === 'week') { initCharts(); renderAllCharts() }
     }
-  } catch (e) {
-    ElMessage.error('查询失败')
-  }
+  } catch (e) { ElMessage.error('查询失败') }
+}
+
+const toEdit = (id) => {
+  editId.value = String(id)
+}
+const cancelEdit = () => { editId.value = '' }
+
+// 提交：完全用你的 updateGrowthTrend
+const submitEdit = async (row) => {
+  try {
+    const res = await updateGrowthTrend(row)
+    if (res.code === 200) {
+      ElMessage.success('修改成功')
+      editId.value = ''
+      loadData()
+    }
+  } catch (e) { ElMessage.error('修改失败') }
+}
+
+// 删除：用你的 deleteGrowthTrend
+const delRow = async (id) => {
+  try {
+    await ElMessageBox.confirm('确定删除？')
+    const res = await deleteGrowthTrend({ id })
+    if (res.code === 200) {
+      ElMessage.success('删除成功')
+      loadData()
+    }
+  } catch (e) { ElMessage.error('删除失败') }
 }
 
 const renderAllCharts = () => {
-  const days = list.value.map(i => i.recordDate)
+  const days = list.value.map(i => formatDate(i))
   const height = list.value.map(i => i.height || 0)
   const weight = list.value.map(i => i.weight || 0)
   const head = list.value.map(i => i.headCirc || 0)
@@ -130,23 +206,23 @@ const renderAllCharts = () => {
   const en = list.value.map(i => i.englishWordCount || 0)
   const poem = list.value.map(i => i.poetryCount || 0)
 
-  const totalCn = cn.reduce((a, b) => a + b, 0)
-  const totalEn = en.reduce((a, b) => a + b, 0)
-  const totalPoem = poem.reduce((a, b) => a + b, 0)
-
   myChartBody.setOption({
+    title: { text: '身体指标', left: 'center' },
     xAxis: { type: 'category', data: days },
     yAxis: { type: 'value' },
+    legend: { data: ['身高(cm)', '体重(斤)', '头围(cm)'], bottom: 0 },
     series: [
-      { name: '身高', type: 'bar', data: height },
-      { name: '体重', type: 'bar', data: weight },
-      { name: '头围', type: 'bar', data: head }
+      { name: '身高(cm)', type: 'bar', data: height },
+      { name: '体重(斤)', type: 'bar', data: weight },
+      { name: '头围(cm)', type: 'bar', data: head }
     ]
   })
 
   myChartLearnBar.setOption({
+    title: { text: '学习数据', left: 'center' },
     xAxis: { type: 'category', data: days },
     yAxis: { type: 'value' },
+    legend: { data: ['识字', '单词', '诗词'], bottom: 0 },
     series: [
       { name: '识字', type: 'bar', data: cn },
       { name: '单词', type: 'bar', data: en },
@@ -155,8 +231,10 @@ const renderAllCharts = () => {
   })
 
   myChartLearnLine.setOption({
+    title: { text: '学习趋势', left: 'center' },
     xAxis: { type: 'category', data: days },
     yAxis: { type: 'value' },
+    legend: { data: ['识字', '单词', '诗词'], bottom: 0 },
     series: [
       { name: '识字', type: 'line', data: cn, smooth: true },
       { name: '单词', type: 'line', data: en, smooth: true },
@@ -165,19 +243,31 @@ const renderAllCharts = () => {
   })
 
   myChartLearnPie.setOption({
-    series: [
-      {
-        type: 'pie',
-        radius: '45%',
-        data: [
-          { name: '识字', value: totalCn },
-          { name: '单词', value: totalEn },
-          { name: '诗词', value: totalPoem }
-        ]
-      }
-    ]
+    title: { text: '学习占比', left: 'center' },
+    tooltip: { trigger: 'item' },
+    legend: { orient: 'vertical', left: 'left', data: ['识字', '单词', '诗词'] },
+    series: [{
+      type: 'pie',
+      radius: '45%',
+      center: ['50%', '60%'],
+      data: [
+        { name: '识字', value: cn.reduce((a, b) => a + b, 0) },
+        { name: '单词', value: en.reduce((a, b) => a + b, 0) },
+        { name: '诗词', value: poem.reduce((a, b) => a + b, 0) }
+      ]
+    }]
   })
 }
+
+onMounted(async () => {
+  try {
+    const familyId = localStorage.getItem('familyId')
+    const res = await searchChildInfo({ familyId: familyId })
+    if (res.code === 200) {
+      childList.value = res.data || []
+    }
+  } catch (e) {}
+})
 </script>
 
 <style scoped>
@@ -197,7 +287,6 @@ const renderAllCharts = () => {
   padding-top: 60px;
 }
 
-/* 返回按钮 固定左上角 永远能点 */
 .back-btn {
   position: absolute;
   top: 10px;
@@ -251,7 +340,6 @@ const renderAllCharts = () => {
   border: 1px solid #eee;
 }
 
-/* 图表缩小到正常大小 */
 .chart-mini {
   width: 100%;
   height: 260px;

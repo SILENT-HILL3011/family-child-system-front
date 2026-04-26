@@ -74,7 +74,7 @@
     <div v-else style="padding:10px">
       <div v-if="examineList.length === 0" style="padding:40px;text-align:center;color:#999">暂无可预约体检</div>
       <el-table v-else :data="examineList" border size="small">
-        <el-table-column label="医生ID" prop="doctorId" />
+        <el-table-column label="医生" prop="doctorName" />
         <el-table-column label="体检开始" prop="startTime" />
         <el-table-column label="体检结束" prop="endTime" />
         <el-table-column label="操作">
@@ -142,7 +142,9 @@
   </el-dialog>
 
   <el-dialog v-model="updateIdDialog" title="编辑儿童信息" width="450px">
-    <el-input v-model="editChildId" placeholder="请输入儿童ID" style="margin-bottom:10px" />
+    <el-select v-model="editChildId" placeholder="请选择儿童" style="width:100%">
+      <el-option v-for="item in childListForEdit" :key="item.childId" :label="item.childName" :value="item.childId" />
+    </el-select>
     <template #footer>
       <el-button @click="updateIdDialog = false">取消</el-button>
       <el-button type="primary" @click="getChildInfoForEdit">下一步</el-button>
@@ -199,13 +201,28 @@
 
   <el-dialog v-model="vaccineDialog" title="更新疫苗接种记录" width="500px">
     <el-form label-width="100px">
-      <el-form-item label="儿童ID">
-        <el-input v-model="vaccineForm.childId" placeholder="请输入儿童ID" />
+      <el-form-item label="儿童">
+        <el-select v-model="vaccineForm.childId" placeholder="请选择儿童" style="width:100%">
+          <el-option v-for="item in childListForEdit" :key="item.childId" :label="item.childName"
+            :value="item.childId" />
+        </el-select>
       </el-form-item>
-      <el-form-item label="疫苗名称">
-        <el-input v-model="vaccineForm.vaccine" placeholder="请输入疫苗信息" />
+
+      <el-form-item label="接种疫苗">
+        <div style="display: flex; align-items: center; gap: 5px; width: 100%">
+          <span>第</span>
+          <el-select v-model="selectedNeedle" placeholder="针次" style="width:100px">
+            <el-option v-for="n in needleNumbers" :key="n" :label="n" :value="n" />
+          </el-select>
+          <span>针</span>
+
+          <el-select v-model="selectedVaccine" placeholder="疫苗种类" style="width:200px; margin-left:5px">
+            <el-option v-for="t in vaccineTypes" :key="t" :label="t" :value="t" />
+          </el-select>
+        </div>
       </el-form-item>
     </el-form>
+
     <template #footer>
       <el-button @click="vaccineDialog = false">取消</el-button>
       <el-button type="primary" @click="submitVaccine">确认更新</el-button>
@@ -230,8 +247,11 @@
   <el-dialog v-model="liveDialog" title="📝 每日生活记录" width="540px" center>
     <div style="padding: 20px">
       <el-form label-width="100px">
-        <el-form-item label="儿童ID">
-          <el-input v-model="liveForm.childId" placeholder="请输入" style="width:280px" />
+        <el-form-item label="选择儿童">
+          <el-select v-model="liveForm.childId" placeholder="请选择儿童" style="width:280px">
+            <el-option v-for="item in childListForEdit" :key="item.childId" :label="item.childName"
+              :value="item.childId" />
+          </el-select>
         </el-form-item>
         <el-form-item label="记录类型">
           <el-select v-model="liveForm.time" placeholder="请选择" style="width:280px">
@@ -242,10 +262,10 @@
             <el-option label="晚休" value="晚睡" />
           </el-select>
         </el-form-item>
-        <el-form-item label="饮食内容" v-if="['早餐','午餐','晚餐'].includes(liveForm.time)">
+        <el-form-item label="饮食内容" v-if="['早餐', '午餐', '晚餐'].includes(liveForm.time)">
           <el-input v-model="liveForm.food" placeholder="请输入饮食" style="width:280px" />
         </el-form-item>
-        <el-form-item label="睡眠时长" v-if="['午睡','晚睡'].includes(liveForm.time)">
+        <el-form-item label="睡眠时长" v-if="['午睡', '晚睡'].includes(liveForm.time)">
           <el-input v-model.number="liveForm.sleepTime" placeholder="请输入小时" style="width:280px" />
         </el-form-item>
       </el-form>
@@ -259,32 +279,49 @@
   <el-dialog v-model="growthDialog" title="📈 生长发育记录" width="520px" center>
     <div style="padding:20px">
       <el-form label-width="120px">
-        <el-form-item label="儿童ID">
-          <el-input v-model="growthForm.childId" placeholder="请输入儿童ID" style="width:300px" />
+        <!-- 1. 只先显示儿童选择 -->
+        <el-form-item label="儿童">
+          <el-select v-model="growthForm.childId" placeholder="请选择儿童" style="width:300px" @change="clearGrowthInput">
+            <el-option v-for="item in childListForEdit" :key="item.childId" :label="item.childName"
+              :value="item.childId" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="身高(mm)">
-          <el-input v-model.number="growthForm.height" placeholder="可不填" style="width:300px" />
-        </el-form-item>
-        <el-form-item label="体重(g)">
-          <el-input v-model.number="growthForm.weight" placeholder="可不填" style="width:300px" />
-        </el-form-item>
-        <el-form-item label="头围(mm)">
-          <el-input v-model.number="growthForm.headCirc" placeholder="可不填" style="width:300px" />
-        </el-form-item>
-        <el-form-item label="新增识字">
-          <el-input v-model.number="growthForm.chineseWordCount" placeholder="0" style="width:300px" />
-        </el-form-item>
-        <el-form-item label="新增单词">
-          <el-input v-model.number="growthForm.englishWordCount" placeholder="0" style="width:300px" />
-        </el-form-item>
-        <el-form-item label="新增诗词">
-          <el-input v-model.number="growthForm.poetryCount" placeholder="0" style="width:300px" />
-        </el-form-item>
+
+        <div v-if="growthForm.childId" style="margin-top:10px">
+          <el-form-item label="身高 (cm)">
+            <el-input v-model.number="growthForm.height" placeholder="可不填" style="width:300px" />
+          </el-form-item>
+          <el-form-item label="体重 (kg)">
+            <el-input v-model.number="growthForm.weight" placeholder="可不填" style="width:300px" />
+          </el-form-item>
+          <el-form-item label="头围 (cm)">
+            <el-input v-model.number="growthForm.headCirc" placeholder="可不填" style="width:300px" />
+          </el-form-item>
+
+          <el-form-item label="新增识字">
+            <el-input v-model.number="growthForm.chineseWordCount" placeholder="0" style="width:300px" />
+          </el-form-item>
+          <el-form-item label="新增单词">
+            <el-input v-model.number="growthForm.englishWordCount" placeholder="0" style="width:300px" />
+          </el-form-item>
+          <el-form-item label="新增诗词">
+            <el-input v-model.number="growthForm.poetryCount" placeholder="0" style="width:300px" />
+          </el-form-item>
+        </div>
       </el-form>
     </div>
     <template #footer>
       <el-button @click="growthDialog = false">取消</el-button>
       <el-button type="primary" @click="submitGrowth">提交记录</el-button>
+    </template>
+  </el-dialog>
+  <el-dialog v-model="selectChildDialog" title="请选择儿童" width="450px">
+    <el-select v-model="noVaccineChildId" placeholder="请选择儿童" style="width:100%">
+      <el-option v-for="item in childListForEdit" :key="item.childId" :label="item.childName" :value="item.childId" />
+    </el-select>
+    <template #footer>
+      <el-button @click="selectChildDialog = false">取消</el-button>
+      <el-button type="primary" @click="confirmSelectChild">确认查询</el-button>
     </template>
   </el-dialog>
 
@@ -300,7 +337,7 @@ import { ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 
 import {
-  addChild,
+  addChild, searchChildInfo,
   searchChildInfoById,
   updateChildInfo,
   updateVaccine,
@@ -310,6 +347,9 @@ import {
   recordGrowth,
   searchExamination
 } from '../../api/growth';
+
+const selectChildDialog = ref(false)
+const noVaccineChildId = ref('')
 
 const examineListDialog = ref(false)
 const examineList = ref([])
@@ -321,6 +361,8 @@ const examineForm = ref({
   doctorId: '',
   startTime: ''
 })
+
+const childListForEdit = ref([])
 
 const openExamineList = () => {
   examineListDialog.value = true
@@ -339,6 +381,33 @@ const loadExaminationList = async () => {
     examineListLoading.value = false
   }
 }
+
+const clearGrowthInput = () => {
+  growthForm.value.height = null
+  growthForm.value.weight = null
+  growthForm.value.headCirc = null
+  growthForm.value.chineseWordCount = 0
+  growthForm.value.englishWordCount = 0
+  growthForm.value.poetryCount = 0
+}
+
+const needleNumbers = ref([1, 2, 3, 4])
+
+const vaccineTypes = ref([
+  "卡介苗",
+  "乙肝",
+  "脊髓灰质炎",
+  "百白破",
+  "A群流脑",
+  "麻腮风",
+  "乙脑",
+  "甲肝",
+  "AC群流脑",
+  "白破"
+])
+
+const selectedNeedle = ref("")
+const selectedVaccine = ref("")
 
 const openAppointDialog = (row) => {
   examineForm.value = {
@@ -406,7 +475,42 @@ const editForm = ref({
   childId: '', childName: '', sex: 1, familyId: '', idNumber: '', status: 1,
   chineseWordCount: '', englishWordCount: '', poetryCount: '', healthCondition: '', dietaryStatus: ''
 })
-const openUpdateDialog = () => { updateIdDialog.value = true }
+
+const openUpdateDialog = async () => {
+  try {
+    const familyId = localStorage.getItem('familyId')
+    if (!familyId) {
+      ElMessage.warning('未获取到家庭ID')
+      return
+    }
+    const res = await searchChildInfo({
+      familyId: familyId
+    })
+    console.log('儿童列表：', res)
+    if (res.code === 200) {
+      childListForEdit.value = res.data || []
+    }
+    updateIdDialog.value = true
+  } catch (err) {
+    console.error(err)
+    ElMessage.error('加载儿童列表失败')
+  }
+}
+
+const loadChildListForEdit = async () => {
+  try {
+    const familyId = localStorage.getItem('familyId')
+    const res = await searchChildInfo({
+      familyId: familyId,
+      pageNum: 1
+    })
+    if (res.code === 200) {
+      childListForEdit.value = res.data.list || []
+    }
+  } catch (e) {
+    ElMessage.error('加载儿童列表失败')
+  }
+}
 const getChildInfoForEdit = async () => {
   if (!editChildId.value) return ElMessage.warning('请输入儿童ID')
   try {
@@ -428,36 +532,68 @@ const submitEdit = async () => {
 
 const vaccineDialog = ref(false)
 const vaccineForm = ref({ childId: '', vaccine: '' })
-const openVaccineDialog = () => {
-  vaccineForm.value = { childId: '', vaccine: '' }
+const openVaccineDialog = async () => {
+  vaccineForm.value.childId = ''
+  selectedNeedle.value = ''    
+  selectedVaccine.value = ''   
+  try {
+    const familyId = localStorage.getItem('familyId')
+    const res = await searchChildInfo({ familyId: familyId })
+    if (res.code === 200) {
+      childListForEdit.value = res.data || []
+    }
+  } catch (e) {}
   vaccineDialog.value = true
 }
 const submitVaccine = async () => {
-  const { childId, vaccine } = vaccineForm.value
-  if (!childId || !vaccine) return ElMessage.warning('请填写完整')
+  const childId = vaccineForm.value.childId
+  const needle = selectedNeedle.value
+  const vacType = selectedVaccine.value
+
+  if (!childId) {
+    return ElMessage.warning('请选择儿童')
+  }
+  if (!needle) {
+    return ElMessage.warning('请选择针次')
+  }
+  if (!vacType) {
+    return ElMessage.warning('请选择疫苗种类')
+  }
+  const vaccineText = `第${needle}针${vacType}`
   try {
-    await updateVaccine({ childId, vaccine })
+    await updateVaccine({ childId, vaccine: vaccineText })
     ElMessage.success('更新成功')
     vaccineDialog.value = false
-  } catch (e) { ElMessage.error('失败') }
+  } catch (e) {
+    ElMessage.error('更新失败')
+  }
 }
-
 const noVaccineDialog = ref(false)
 const noVaccineList = ref([])
 const openNoVaccineDialog = async () => {
-  const childId = prompt('请输入儿童ID：')
-  if (!childId) return
   try {
-    const res = await searchVaccineThisYear({ childId })
-    noVaccineList.value = res.data || []
-    noVaccineDialog.value = true
-  } catch (e) { ElMessage.error('失败') }
+    const familyId = localStorage.getItem('familyId')
+    const res = await searchChildInfo({ familyId })
+    if (res.code === 200) {
+      childListForEdit.value = res.data || []
+    }
+    selectChildDialog.value = true
+  } catch (e) {
+    ElMessage.error('加载儿童列表失败')
+  }
 }
 
 const liveDialog = ref(false)
 const liveForm = ref({ childId: '', time: '', food: '', sleepTime: '' })
-const openLiveDialog = () => {
+const openLiveDialog = async () => {
   liveForm.value = { childId: '', time: '', food: '', sleepTime: '' }
+  try {
+    const familyId = localStorage.getItem('familyId')
+    const res = await searchChildInfo({ familyId })
+    if (res.code === 200) {
+      childListForEdit.value = res.data || []
+    }
+  } catch (e) { }
   liveDialog.value = true
 }
 const submitLive = async () => {
@@ -472,8 +608,8 @@ const submitLive = async () => {
   try {
     const params = {
       childId,
-      time,               
-      food: food || null, 
+      time,
+      food: food || null,
       sleepTime
     }
     await recordLive(params)
@@ -484,20 +620,42 @@ const submitLive = async () => {
   }
 }
 
+const confirmSelectChild = async () => {
+  if (!noVaccineChildId.value) {
+    ElMessage.warning('请选择儿童')
+    return
+  }
+  try {
+    const res = await searchVaccineThisYear({ childId: noVaccineChildId.value })
+    noVaccineList.value = res.data || []
+    selectChildDialog.value = false
+    noVaccineDialog.value = true
+  } catch (e) {
+    ElMessage.error('查询失败')
+  }
+}
+
 const growthDialog = ref(false)
 const growthForm = ref({
   childId: '', height: null, weight: null, headCirc: null,
   chineseWordCount: 0, englishWordCount: 0, poetryCount: 0
 })
-const openGrowthDialog = () => {
+const openGrowthDialog = async () => {
   growthForm.value = {
     childId: '', height: null, weight: null, headCirc: null,
     chineseWordCount: 0, englishWordCount: 0, poetryCount: 0
   }
+  try {
+    const familyId = localStorage.getItem('familyId')
+    const res = await searchChildInfo({ familyId })
+    if (res.code === 200) {
+      childListForEdit.value = res.data || []
+    }
+  } catch (e) { }
   growthDialog.value = true
 }
 const submitGrowth = async () => {
-  if (!growthForm.value.childId) return ElMessage.warning('请输入儿童ID')
+  if (!growthForm.value.childId) return ElMessage.warning('请选择儿童')
   try {
     await recordGrowth(growthForm.value)
     ElMessage.success('记录成功（同一天自动更新）')

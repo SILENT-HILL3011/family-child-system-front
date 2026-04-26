@@ -21,6 +21,7 @@ import ConsultChat from '../views/consult/ConsultChat.vue'
 import ConsultHistory from '../views/consult/ConsultHistory.vue'
 import Index from '../views/utils/Index.vue'
 import GrowthTrend from '../views/growth/GrowthTrend.vue'
+import MyExamination from '../views/growth/MyExamination.vue'
 
 const routes = [
   {
@@ -67,6 +68,11 @@ const routes = [
     path: '/vaccine-query',
     name: 'VaccineQuery',
     component: VaccineQuery
+  },
+   {
+    path: '/my-examination',
+    name: 'MyExamination',
+    component: MyExamination
   },
   {
     path: '/vaccine-timeline',

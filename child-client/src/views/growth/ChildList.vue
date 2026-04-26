@@ -12,15 +12,17 @@
     </div>
 
     <el-table :data="childList" border style="width: 100%; margin-bottom: 20px;">
-        <el-table-column label="儿童id" prop="childId" />
-        <el-table-column label="家庭id" prop="familyId" />
+      <el-table-column label="家庭" prop="familyName" />
       <el-table-column label="儿童姓名" prop="childName" />
       <el-table-column label="性别" prop="sex">
         <template #default="{ row }">
           {{ row.sex === 1 ? '男' : '女' }}
         </template>
       </el-table-column>
+
+      <!-- ✅ 这里修复为驼峰 idNumber -->
       <el-table-column label="身份证号" prop="idNumber" />
+
       <el-table-column label="年龄" prop="age" />
       <el-table-column label="操作" width="100">
         <template #default="{row}">
@@ -47,10 +49,7 @@ const pageNum = ref(1)
 const total = ref(0)
 
 const getList = async () => {
-  if (pageNum.value < 1) {
-    ElMessage.warning('页码必须 ≥ 1')
-    return
-  }
+
   try {
     const familyId = localStorage.getItem('familyId')
     if (!familyId) {
@@ -59,13 +58,11 @@ const getList = async () => {
     }
 
     const res = await searchChildInfo({
-      familyId: familyId,
-      pageNum: pageNum.value
+      familyId: familyId
     })
 
     if (res.code === 200) {
-      childList.value = res.data.list
-      total.value = res.data.total
+      childList.value = res.data
     }
   } catch (err) {
     ElMessage.error('获取儿童信息失败')
@@ -88,7 +85,7 @@ const handleDelete = async(row)=>{
     ElMessage.error('删除失败')
   }
 }
-// 加载第一页
+
 getList()
 
 const goBack = () => {
