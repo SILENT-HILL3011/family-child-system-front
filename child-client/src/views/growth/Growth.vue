@@ -75,8 +75,30 @@
       <div v-if="examineList.length === 0" style="padding:40px;text-align:center;color:#999">暂无可预约体检</div>
       <el-table v-else :data="examineList" border size="small">
         <el-table-column label="医生" prop="doctorName" />
-        <el-table-column label="体检开始" prop="startTime" />
-        <el-table-column label="体检结束" prop="endTime" />
+        <el-table-column label="体检开始" prop="startTime">
+          <template #default="scope">
+            {{ scope.row.startTime ? new Date(scope.row.startTime).toLocaleString('zh-CN', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit'
+            }).replace(/\//g, '-').replace(/\u5e74|\u6708/g, '-').replace(/\u65e5/g, '') : '2000-00-00 00:00:00' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="体检结束" prop="endTime">
+          <template #default="scope">
+            {{ scope.row.endTime ? new Date(scope.row.endTime).toLocaleString('zh-CN', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit'
+            }).replace(/\//g, '-').replace(/\u5e74|\u6708/g, '-').replace(/\u65e5/g, '') : '2000-00-00 00:00:00' }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作">
           <template #default="{ row }">
             <el-button type="success" size="small" @click="openAppointDialog(row)">预约</el-button>
@@ -86,33 +108,55 @@
     </div>
   </el-dialog>
 
-  <el-dialog v-model="examineDialog" title="确认体检预约" width="520px" center>
-    <div style="padding:25px 15px 15px;">
-      <el-form label-width="100px">
-        <el-form-item label="儿童ID">
-          <el-input v-model="examineForm.childId" placeholder="请输入儿童ID" style="width:100%" />
-        </el-form-item>
-        <el-form-item label="医生ID">
-          <el-input v-model="examineForm.doctorId" disabled style="width:100%" />
-        </el-form-item>
-        <el-form-item label="体检开始">
-          <el-input v-model="examineForm.startTime" disabled style="width:100%" />
-        </el-form-item>
-        <el-form-item label="体检结束">
-          <el-input v-model="examineForm.endTime" disabled style="width:100%" />
-        </el-form-item>
+  <el-dialog v-model="examineDialog" title="确认体检预约" width="580px" center>
+  <div style="padding:25px 15px 15px;">
+    <el-form label-width="100px">
+      <el-form-item label="选择儿童">
+        <el-select v-model="examineForm.childId" placeholder="请选择儿童" style="width:100%">
+          <el-option 
+            v-for="item in childListForEdit" 
+            :key="item.childId" 
+            :label="item.childName" 
+            :value="item.childId"
+          />
+        </el-select>
+      </el-form-item>
 
-        <el-form-item label="预约时间">
-          <el-date-picker v-model="examineForm.appointTime" type="datetime" placeholder="请选择预约时间"
-            format="YYYY-MM-DD HH:mm:ss" value-format="YYYY-MM-DD HH:mm:ss" style="width:100%" />
-        </el-form-item>
-      </el-form>
-    </div>
-    <template #footer>
-      <el-button @click="examineDialog = false">取消</el-button>
-      <el-button type="primary" @click="doExamineAppoint">确认预约</el-button>
-    </template>
-  </el-dialog>
+      <el-form-item label="医生">
+        <el-input :value="examineForm.doctorName" disabled style="width:100%" />
+      </el-form-item>
+
+      <el-form-item label="可预约时段">
+        <div class="time-slot-group">
+          <!-- 可预约时段卡片 -->
+          <el-button 
+            v-for="slot in examineForm.availableSlots"
+            :key="slot.value"
+            class="time-slot"
+            :type="examineForm.selectedHour == slot.value ? 'primary' : 'default'"
+            @click="examineForm.selectedHour = slot.value"
+          >
+            {{ slot.label }}
+          </el-button>
+
+          <!-- 空数据 -->
+          <div v-if="examineForm.availableSlots.length === 0" style="color:#999;padding-top:10px">
+            暂无可预约时段
+          </div>
+        </div>
+      </el-form-item>
+
+    </el-form>
+  </div>
+
+  <template #footer>
+    <span style="flex:1;text-align:left;color:#666">
+      点击蓝色时段即可选择
+    </span>
+    <el-button @click="examineDialog = false">取消</el-button>
+    <el-button type="primary" @click="doExamineAppoint">确认预约</el-button>
+  </template>
+</el-dialog>
 
   <el-dialog v-model="addDialog" title="添加孩子信息" width="500px">
     <el-form :model="form" label-width="100px">
@@ -345,7 +389,8 @@ import {
   appointExamination,
   recordLive,
   recordGrowth,
-  searchExamination
+  searchExamination,
+  loadFreeTime
 } from '../../api/growth';
 
 const selectChildDialog = ref(false)
@@ -358,8 +403,12 @@ const examineListLoading = ref(false)
 const examineDialog = ref(false)
 const examineForm = ref({
   childId: '',
+  examinationId: '',
   doctorId: '',
-  startTime: ''
+  doctorName: '',
+  date: '',
+  availableSlots: [],
+  selectedHour: ''
 })
 
 const childListForEdit = ref([])
@@ -409,42 +458,85 @@ const vaccineTypes = ref([
 const selectedNeedle = ref("")
 const selectedVaccine = ref("")
 
-const openAppointDialog = (row) => {
-  examineForm.value = {
-    childId: '',
-    doctorId: row.doctorId,
-    startTime: row.startTime,
-    endTime: row.endTime,
-    appointTime: ''
+const openAppointDialog = async (row) => {
+  // 加载儿童列表
+  const familyId = localStorage.getItem('familyId')
+  try {
+    const res = await searchChildInfo({ familyId })
+    if (res.code === 200) {
+      childListForEdit.value = res.data || []
+    }
+  } catch (e) {
+    ElMessage.error('加载儿童列表失败')
+    return
   }
-  examineListDialog.value = false
-  examineDialog.value = true
+
+  // 加载可预约时段
+  try {
+    const res = await loadFreeTime({ examinationId: row.examinationId })
+    // 关键：从 res.data 里取数组
+    const list = res.data
+    if (!list || !Array.isArray(list) || list.length === 0) {
+      ElMessage.error('暂无可预约时间')
+      return
+    }
+
+    const data = list[0]
+    const availableSlots = data.availableHours.map(h => ({
+      value: h,
+      label: `${String(h).padStart(2, '0')}:00 - ${String(h + 1).padStart(2, '0')}:00`
+    }))
+
+    // 初始化表单
+    examineForm.value = {
+      childId: '',
+      examinationId: row.examinationId,
+      doctorId: row.doctorId,
+      doctorName: row.doctorName, // 用表格里的，避免 null
+      date: data.date,
+      availableSlots: availableSlots,
+      selectedHour: ''
+    }
+
+    examineListDialog.value = false
+    examineDialog.value = true
+
+  } catch (e) {
+    console.error(e)
+    ElMessage.error('获取可预约时间失败')
+  }
 }
 
 const doExamineAppoint = async () => {
-  const { childId, doctorId, startTime, endTime, appointTime } = examineForm.value
+  const { childId, examinationId, date, selectedHour } = examineForm.value
 
-  if (!childId || !appointTime) {
-    return ElMessage.warning('请填写完整')
+  // 必选校验
+  if (!childId) {
+    return ElMessage.warning('请选择儿童')
+  }
+  if (selectedHour === '') {
+    return ElMessage.warning('请选择预约时段')
   }
 
-  if (appointTime < startTime || appointTime > endTime) {
-    return ElMessage.warning('预约时间必须在体检开始和结束时间之间')
-  }
+  // 拼接时间
+  const hour = String(selectedHour).padStart(2, '0')
+  const appointTime = `${date} ${hour}:00:00`
 
   try {
     const res = await appointExamination({
       childId,
-      doctorId,
+      examinationId,
       startTime: appointTime
     })
 
-    if (res.code === 200) {
-      ElMessage.success('预约成功')
-      examineDialog.value = false
-    }
+    // 成功处理
+    ElMessage.success('预约成功！')
+    examineDialog.value = false // 关闭弹窗
+    loadExaminationList()      // 刷新列表
+
   } catch (e) {
-    ElMessage.error('预约失败')
+    console.error(e)
+    ElMessage.error('预约失败，请重试')
   }
 }
 
@@ -602,7 +694,7 @@ const submitLive = async () => {
   if ((time === '午睡' || time === '晚睡') && !sleepTime) {
     return ElMessage.warning('请填写睡眠时长')
   }
-  if ((time === '早餐' || time === '午餐' || time === '晚餐') && !food) {
+  if ((time === '早餐', '午餐', '晚餐') && !food) {
     return ElMessage.warning('请填写饮食内容')
   }
   try {
