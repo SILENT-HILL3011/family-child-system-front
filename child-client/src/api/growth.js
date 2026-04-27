@@ -158,3 +158,27 @@ export const searchExamination = () => {
     method: 'GET'
   })
 }
+
+export const loadFreeTime = (data) => {
+  return request({
+    url: '/child/grow/loadFreeTime',
+    method: 'post',
+    params: data
+  })
+}
+
+export const findMyExamination = (data) => {
+  return request({
+    url: '/child/grow/findMyExamination',
+    method: 'post',
+    params: data
+  })
+}
+
+export const cancelExamination = (data) => {
+  return request({
+    url: '/child/grow/cancelExamination',
+    method: 'post',
+    params: data
+  })
+}
