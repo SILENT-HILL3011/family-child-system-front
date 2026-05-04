@@ -1,103 +1,69 @@
 <template>
   <div class="home-page">
-    <!-- 左侧边栏：功能模块 -->
     <aside class="sidebar">
       <div class="sidebar-title">功能菜单</div>
-      <div 
-        class="menu-item" 
-        v-for="(item, index) in menuList" 
-        :key="index" 
-        @click="handleMenuClick(item)"
-      >
+      <div class="menu-item" v-for="(item, index) in menuList" :key="index" @click="handleMenuClick(item)">
         {{ item.name }}
       </div>
     </aside>
 
-    <!-- 中间主内容区 -->
     <main class="main-content">
       <div class="top-bar">专家系统主页</div>
       <div class="content-area">
-        <router-view />
+        <div class="func-grid">
+          <div class="func-card" @click="goModule('common')">
+            <div class="func-img">
+              <img src="../assets/common.jpg" alt="通用模块" />
+            </div>
+            <div class="func-info">
+              <h3>通用模块</h3>
+              <p>公告、咨询、消息、系统工具</p>
+            </div>
+          </div>
+
+          <!-- 医生模块 - doctor.jpg -->
+          <div class="func-card" @click="goModule('doctor')">
+            <div class="func-img">
+              <img src="../assets/doctor.jpg" alt="医生模块" />
+            </div>
+            <div class="func-info">
+              <h3>医生模块</h3>
+              <p>体检管理、报告填写、儿童健康</p>
+            </div>
+          </div>
+
+          <!-- 教师模块 - teacher.jpg -->
+          <div class="func-card" @click="goModule('teacher')">
+            <div class="func-img">
+              <img src="../assets/teacher.jpg" alt="教师模块" />
+            </div>
+            <div class="func-info">
+              <h3>教师模块</h3>
+              <p>成长评价、教育指导、档案管理</p>
+            </div>
+          </div>
+
+          <!-- 厨师模块 - cook.jpg -->
+          <div class="func-card" @click="goModule('cook')">
+            <div class="func-img">
+              <img src="../assets/cook.jpg" alt="厨师模块" />
+            </div>
+            <div class="func-info">
+              <h3>厨师模块</h3>
+              <p>膳食建议、营养指导、食谱管理</p>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
 
-    <!-- 左下角：退出登录 -->
+    <!-- 底部按钮 -->
     <div class="bottom-left">
       <el-button type="primary" @click="handleLogout">退出登录</el-button>
     </div>
-
-    <!-- 右下角：收件箱 -->
     <div class="bottom-right">
       <el-button type="info" @click="handleInbox">收件箱</el-button>
     </div>
-
-    <!-- ======================
-         专家信息弹窗
-         ====================== -->
-    <el-dialog v-model="infoDialogVisible" title="专家信息管理" width="520px">
-      <el-form label-width="100px" :model="infoForm">
-        <el-form-item label="专家ID">
-          <el-input v-model="infoForm.expertId" disabled />
-        </el-form-item>
-        <el-form-item label="专家姓名">
-          <el-input v-model="infoForm.expertName" />
-        </el-form-item>
-        <el-form-item label="手机号">
-          <el-input v-model="infoForm.expertPhone" />
-        </el-form-item>
-        <el-form-item label="邮箱">
-          <el-input v-model="infoForm.expertEmail" />
-        </el-form-item>
-        <el-form-item label="工作单位">
-          <el-input v-model="infoForm.workPlace" />
-        </el-form-item>
-        <el-form-item label="专家类型">
-          <el-select v-model="infoForm.expertType" placeholder="请选择类型">
-            <el-option label="医生" value="医生" />
-            <el-option label="老师" value="老师" />
-            <el-option label="厨师" value="厨师" />
-          </el-select>
-        </el-form-item>
-      </el-form>
-
-      <template #footer>
-        <el-button @click="infoDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="saveExpertInfo">保存</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- ======================
-         体检发布弹窗 → 改为 开始时间 + 结束时间
-         ====================== -->
-    <el-dialog v-model="checkupDialogVisible" title="创建体检" width="500px">
-      <el-form label-width="100px" :model="checkupForm">
-        <el-form-item label="开始时间">
-          <el-date-picker
-            v-model="checkupForm.startTime"
-            type="datetime"
-            placeholder="选择开始时间"
-            style="width: 100%"
-            format="YYYY-MM-DD HH:mm:ss"
-            value-format="YYYY-MM-DD HH:mm:ss"
-          />
-        </el-form-item>
-        <el-form-item label="结束时间">
-          <el-date-picker
-            v-model="checkupForm.endTime"
-            type="datetime"
-            placeholder="选择结束时间"
-            style="width: 100%"
-            format="YYYY-MM-DD HH:mm:ss"
-            value-format="YYYY-MM-DD HH:mm:ss"
-          />
-        </el-form-item>
-      </el-form>
-
-      <template #footer>
-        <el-button @click="checkupDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="checkupLoading" @click="submitCheckup">确认创建</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -105,11 +71,9 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { searchExpertInfo, updateExpertInfo, createPersonalExamination } from '../api/expert'
 
 const router = useRouter()
 
-// 菜单
 const menuList = ref([
   { name: '专家信息管理', type: 'dialog' },
   { name: '体检发布', type: 'dialog' },
@@ -117,110 +81,24 @@ const menuList = ref([
   { name: '用户咨询', path: '/expert/chat-list' }
 ])
 
-// ==================
-// 专家信息
-// ==================
-const infoDialogVisible = ref(false)
-const infoForm = ref({})
-const saving = ref(false)
-
-// ==================
-// 体检发布 → 改为 startTime + endTime
-// ==================
-const checkupDialogVisible = ref(false)
-const checkupForm = ref({
-  startTime: '',
-  endTime: ''
-})
-const checkupLoading = ref(false)
-
-// ==================
-// 菜单点击
-// ==================
-const handleMenuClick = async (item) => {
-  if (item.name === '专家信息管理') {
-    await loadExpertInfo()
-    infoDialogVisible.value = true
-  } else if (item.name === '体检发布') {
-    checkupDialogVisible.value = true
-  } else {
-    router.push(item.path)
-  }
+const handleMenuClick = (item) => {
+  ElMessage.info('功能开发中：' + item.name)
 }
 
-// ==================
-// 加载专家信息
-// ==================
-const loadExpertInfo = async () => {
-  console.log("当前token =", localStorage.getItem('token'))
-  try {
-    const res = await searchExpertInfo()
-    if (res.code === 200) {
-      infoForm.value = { ...res.data }
-    }
-  } catch (e) {
-    ElMessage.error('加载信息失败')
+const goModule = (type) => {
+  const map = {
+    common: '/expert/common',
+    doctor: '/expert/doctor',
+    teacher: '/expert/teacher',
+    cook: '/expert/cook'
   }
+  ElMessage.success('进入：' + type + ' 模块')
+  router.push(map[type])
 }
 
-// ==================
-// 保存专家信息
-// ==================
-const saveExpertInfo = async () => {
-  saving.value = true
-  try {
-    const res = await updateExpertInfo(infoForm.value)
-    if (res.code === 200) {
-      ElMessage.success('保存成功')
-      infoDialogVisible.value = false
-    } else {
-      ElMessage.error(res.msg || '保存失败')
-    }
-  } catch (e) {
-    ElMessage.error('保存失败')
-  } finally {
-    saving.value = false
-  }
-}
-
-// ==================
-// 提交体检 → 传递 startTime 和 endTime
-// ==================
-const submitCheckup = async () => {
-  const { startTime, endTime } = checkupForm.value
-  console.log("【体检弹窗】开始时间：", startTime)
-  console.log("【体检弹窗】结束时间：", endTime)
-
-  if (!startTime || !endTime) {
-    return ElMessage.warning('请选择开始时间和结束时间')
-  }
-
-  checkupLoading.value = true
-  try {
-    console.log("【体检弹窗】开始调用接口...")
-    const res = await createPersonalExamination(startTime, endTime)
-    console.log("【体检弹窗】接口返回：", res)
-    
-    if (res.code === 200) {
-      ElMessage.success('创建体检成功')
-      checkupDialogVisible.value = false
-    } else {
-      ElMessage.error(res.msg || '创建失败')
-    }
-  } catch (e) {
-    console.error("【体检弹窗】接口报错：", e)
-    ElMessage.error('请求失败')
-  } finally {
-    checkupLoading.value = false
-  }
-}
-
-// ==================
-// 退出 & 收件箱
-// ==================
 const handleLogout = () => {
   localStorage.removeItem('token')
-  ElMessage.success('已退出登录')
+  ElMessage.success('已退出')
   router.push('/login')
 }
 
@@ -293,17 +171,81 @@ const handleInbox = () => {
   flex: 1;
   padding: 40px;
   overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.func-grid {
+  width: 90%;
+  max-width: 1000px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 25px;
+}
+
+.func-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.func-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.func-img {
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  background: #f5f7fa;
+}
+
+.func-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: all 0.3s;
+}
+
+.func-card:hover .func-img img {
+  transform: scale(1.05);
+}
+
+.func-info {
+  padding: 18px 15px;
+  text-align: center;
+}
+
+.func-info h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a3a69;
+}
+
+.func-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
 }
 
 .bottom-left {
   position: fixed;
   left: 30px;
   bottom: 30px;
+  z-index: 10;
 }
 
 .bottom-right {
   position: fixed;
   right: 30px;
   bottom: 30px;
+  z-index: 10;
 }
 </style>

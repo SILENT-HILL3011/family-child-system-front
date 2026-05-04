@@ -22,6 +22,7 @@ import ConsultHistory from '../views/consult/ConsultHistory.vue'
 import Index from '../views/utils/Index.vue'
 import GrowthTrend from '../views/growth/GrowthTrend.vue'
 import MyExamination from '../views/growth/MyExamination.vue'
+import ReportDetail from '../views/growth/ReportDetail.vue'
 
 const routes = [
   {
@@ -135,6 +136,11 @@ const routes = [
     name: 'Util',
     component: Index,
     meta: { title: '实用工具' }
+  },
+    {
+    path: '/growth/reportDetail',
+    name: 'ReportDetail',
+    component: ReportDetail
   }
 ]
 

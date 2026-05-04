@@ -150,7 +150,7 @@ const handleCancel = async (id) => {
 }
 
 const handleReport = (row) => {
-  ElMessage.success('查看报告：' + row.childName)
+  router.push(`/growth/reportDetail?appointId=${row.appointId}`)
 }
 
 onMounted(() => {

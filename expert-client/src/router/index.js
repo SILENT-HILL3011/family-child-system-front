@@ -6,6 +6,11 @@ import { ElMessage } from 'element-plus'
 import ExpertChatList from '../views/utils/ExpertChatList.vue'
 import ExpertChat from '../views/utils/ExpertChat.vue'
 import ToolsIndex from '../views/utils/ToolsIndex.vue'
+import Common from '../views/common/Common.vue'
+import Doctor from '../views/doctor/Doctor.vue'
+import MyExam from '../views/doctor/MyExam.vue'
+import FillReport from '../views/doctor/FillReport.vue'
+
 
 
 const routes = [
@@ -25,9 +30,25 @@ const routes = [
   {
     path: '/expert/tools',
     component: ToolsIndex,
-    // redirect: '/expert/tools/allergy',
-    
-  }
+  },
+  {
+    path: '/expert/common',
+    component: Common
+  },
+  {
+    path: '/expert/doctor',
+    component: Doctor
+  },
+  {
+    path: '/expert/doctor/my-exam',
+    component: MyExam
+  },
+  {
+    path: '/expert/doctor/fillReport',
+    name: 'FillReport',
+    component: FillReport
+  },
+
 
 ]
 

@@ -7,7 +7,6 @@
 
       <div class="query-box">
         <el-form :model="query" label-width="100px" inline>
-          <!-- 儿童ID 改为 下拉选择儿童 -->
           <el-form-item label="选择儿童">
             <el-select v-model="query.childId" style="width:220px" placeholder="请选择儿童">
               <el-option v-for="item in childList" :key="item.childId" :label="item.childName" :value="item.childId" />
@@ -22,56 +21,59 @@
           </el-form-item>
         </el-form>
         <el-button type="primary" @click="loadData">查询并生成</el-button>
+
+        <!-- 关键：v-if="list.length > 0" 有数据才显示 -->
+        <el-button 
+          v-if="list.length > 0" 
+          type="success" 
+          size="small" 
+          icon="el-icon-download" 
+          @click="handleExportGrowth"
+          style="margin-left:10px"
+        >
+          导出Excel
+        </el-button>
       </div>
 
       <div v-if="query.type === 'day' && list.length" class="table-box">
         <el-table :data="list" border size="small" style="width:100%">
-          <!-- 日期格式化：绑定 formatter -->
           <el-table-column label="日期" prop="recordDate" :formatter="formatDate" />
-
-          <!-- 恢复 prop，确保数据能显示 -->
           <el-table-column label="身高(cm)" prop="height">
             <template #default="scope">
               <el-input v-if="editId === scope.row.id" v-model="scope.row.height" size="small" />
               <span v-else>{{ scope.row.height || '' }}</span>
             </template>
           </el-table-column>
-
           <el-table-column label="体重(斤)" prop="weight">
             <template #default="scope">
               <el-input v-if="editId === scope.row.id" v-model="scope.row.weight" size="small" />
               <span v-else>{{ scope.row.weight || '' }}</span>
             </template>
           </el-table-column>
-
           <el-table-column label="头围(cm)" prop="headCirc">
             <template #default="scope">
               <el-input v-if="editId === scope.row.id" v-model="scope.row.headCirc" size="small" />
               <span v-else>{{ scope.row.headCirc || '' }}</span>
             </template>
           </el-table-column>
-
           <el-table-column label="识字" prop="chineseWordCount">
             <template #default="scope">
               <el-input v-if="editId === scope.row.id" v-model="scope.row.chineseWordCount" size="small" />
               <span v-else>{{ scope.row.chineseWordCount || 0 }}</span>
             </template>
           </el-table-column>
-
           <el-table-column label="单词" prop="englishWordCount">
             <template #default="scope">
               <el-input v-if="editId === scope.row.id" v-model="scope.row.englishWordCount" size="small" />
               <span v-else>{{ scope.row.englishWordCount || 0 }}</span>
             </template>
           </el-table-column>
-
           <el-table-column label="诗词" prop="poetryCount">
             <template #default="scope">
               <el-input v-if="editId === scope.row.id" v-model="scope.row.poetryCount" size="small" />
               <span v-else>{{ scope.row.poetryCount || 0 }}</span>
             </template>
           </el-table-column>
-
           <el-table-column label="操作" width="220">
             <template #default="scope">
               <div v-if="editId === scope.row.id">
@@ -117,7 +119,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import * as echarts from 'echarts'
 
-import { searchGrowth, updateGrowthTrend, deleteGrowthTrend,searchChildInfo } from '../../api/growth'
+import { searchGrowth, updateGrowthTrend, deleteGrowthTrend,searchChildInfo,exportGrowth } from '../../api/growth'
 
 const router = useRouter()
 const goBack = () => { router.push('/growth') }
@@ -258,6 +260,32 @@ const renderAllCharts = () => {
     }]
   })
 }
+
+const handleExportGrowth = async () => {
+  const childId = query.value.childId
+  if (!childId) {
+    ElMessage.warning('请先选择儿童')
+    return
+  }
+  try {
+    const res = await exportGrowth({ childId })
+    const blob = new Blob([res], {
+      type: 'application/vnd.ms-excel'
+    })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = '成长记录_' + new Date().getTime() + '.xlsx'
+    a.click()
+    URL.revokeObjectURL(url)
+
+    ElMessage.success('导出成功')
+  } catch (err) {
+    ElMessage.error('导出失败')
+    console.error(err)
+  }
+}
+
 
 onMounted(async () => {
   try {

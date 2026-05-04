@@ -182,3 +182,29 @@ export const cancelExamination = (data) => {
     params: data
   })
 }
+
+export const exportGrowth = (params) => {
+  return request({
+    url: '/child/grow/exportGrowth',
+    method: "get",
+    params: params,
+    responseType: 'blob'
+  })
+}
+
+export const checkResult = (data) => {
+  return request({
+    url: '/child/grow/checkResult',
+    method: 'get',
+    params: data
+  })
+}
+
+export const exportExamPdf = (params) => {
+  return request({
+    url: '/child/grow/exportExamPdf',
+    method: 'get',
+    params,
+    responseType: 'blob' // 必须加！
+  })
+}
