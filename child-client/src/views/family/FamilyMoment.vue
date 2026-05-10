@@ -7,17 +7,46 @@
 
     <div class="publish-box">
       <h3>发布新动态</h3>
-      <el-input v-model="momentContent" type="textarea" rows="4" placeholder="分享家里日常、暖心话、育儿心得..."
-        style="margin:15px 0" />
-      <el-button type="primary" @click="handlePublish">立即发布</el-button>
+      <el-input
+        v-model="momentContent"
+        type="textarea"
+        rows="4"
+        placeholder="分享家里日常、暖心话、育儿心得..."
+        style="margin:15px 0"
+      />
+
+      <div class="image-upload-area" v-if="!imageUrl">
+        <el-upload
+          :show-file-list="false"
+          :before-upload="beforeUpload"
+          :on-success="handleImageUploadSuccess"
+          :on-error="handleImageUploadError"
+          action="/api/child/file/upload/message"
+          class="upload-btn"
+        >
+          <el-button type="default" size="small">📷 选择图片</el-button>
+        </el-upload>
+      </div>
+
+      <div class="image-preview" v-if="imageUrl">
+        <img :src="imageUrl" alt="预览" />
+        <el-button type="danger" size="small" @click="removeImage">删除图片</el-button>
+      </div>
+
+      <div style="margin-top:15px;">
+        <el-button type="primary" @click="handlePublish">立即发布</el-button>
+      </div>
     </div>
 
     <div class="moment-list">
       <div class="moment-item" v-for="item in messageList" :key="item.messageId">
         <div class="user-info">
-          <!-- 🔥 完全照你 userInfo 能显示的写法改的 -->
-          <img class="user-avatar" :src="item.avatar ? '/api/child' + item.avatar : '/default-avatar.png'" alt="用户头像" />
-
+          <img
+            class="user-avatar"
+            :src="item.avatar ? '/api/child' + item.avatar : '/default-avatar.png'"
+            alt="用户头像"
+            @error="handleAvatarError"
+          />
           <div class="user-text">
             <div class="user-name">家庭成员：{{ item.memberName }}</div>
             <div class="publish-time">{{ item.publishTime }}</div>
@@ -25,6 +54,11 @@
         </div>
 
         <div class="moment-text">{{ item.content }}</div>
+
+        <!-- 动态图片展示 -->
+        <div class="moment-image" v-if="item.imageUrl">
+          <img :src="'/api/child' + item.imageUrl" alt="动态图片" />
+        </div>
 
         <div class="btn-group">
           <el-button text icon="el-icon-thumb" @click="handleLike(item)">
@@ -88,6 +122,7 @@ import {
 const router = useRouter()
 const momentContent = ref('')
 const messageList = ref([])
+const imageUrl = ref('') // 图片地址
 
 const commentTarget = ref(null)
 const commentContent = ref('')
@@ -95,7 +130,35 @@ const commentList = ref([])
 const replyTarget = ref(null)
 const replyContent = ref('')
 
-// ✅ 头像加载失败兜底，防止裂图
+// 图片上传前校验
+const beforeUpload = (file) => {
+  const isImage = file.type.startsWith('image/')
+  if (!isImage) {
+    ElMessage.error('只能上传图片！')
+    return false
+  }
+  return true
+}
+
+// 上传成功
+const handleImageUploadSuccess = (res) => {
+  if (res.code === 200) {
+    imageUrl.value = '/api' + res.data
+    ElMessage.success('图片上传成功')
+  } else {
+    ElMessage.error('图片上传失败')
+  }
+}
+
+const handleImageUploadError = () => {
+  ElMessage.error('上传异常')
+}
+
+// 删除图片
+const removeImage = () => {
+  imageUrl.value = ''
+}
+
 const handleAvatarError = (e) => {
   e.target.src = '/default-avatar.png'
 }
@@ -145,16 +208,17 @@ const loadCommentList = async (messageId) => {
   }
 }
 
+// 发布动态（支持图片）
 const handlePublish = async () => {
-  if (!momentContent.value.trim()) {
-    ElMessage.warning('请输入内容')
-    return
-  }
   try {
-    const res = await publishFamilyMessage({ content: momentContent.value })
+    const res = await publishFamilyMessage({
+      content: momentContent.value || '',
+      imageUrl: imageUrl.value ? imageUrl.value.replace('/api/child', '') : ''
+    })
     if (res.code === 200) {
       ElMessage.success('发布成功')
       momentContent.value = ''
+      imageUrl.value = ''
       loadMessageList()
     }
   } catch (e) {
@@ -266,6 +330,19 @@ const handleSendReply = async () => {
   color: #333;
 }
 
+.image-upload-area, .image-preview {
+  margin-top: 8px;
+}
+
+.image-preview img {
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border: 1px solid #eee;
+}
+
 .moment-list {
   display: flex;
   flex-direction: column;
@@ -286,7 +363,6 @@ const handleSendReply = async () => {
   margin-bottom: 16px;
 }
 
-/* ✅ 头像样式：圆形、固定大小、强制显示 */
 .user-avatar {
   width: 44px;
   height: 44px;
@@ -319,6 +395,14 @@ const handleSendReply = async () => {
   line-height: 1.7;
   color: #444;
   margin-bottom: 18px;
+}
+
+.moment-image img {
+  max-width: 240px;
+  max-height: 240px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  object-fit: cover;
 }
 
 .btn-group {

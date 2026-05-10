@@ -96,3 +96,11 @@ export const changeRole = (params) => {
     params
   })
 }
+
+export const searchAllTask = (familyId) => {
+  return request({
+    url: '/child/family/searchAllTask',
+    method: 'post',
+    params: { familyId }
+  })
+}

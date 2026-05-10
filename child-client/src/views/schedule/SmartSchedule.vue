@@ -8,7 +8,6 @@
     <div class="calendar-box">
       <el-calendar v-model="selectedDate">
         <template #date-cell="{ data }">
-          <!-- 🔥 点击事件写在这里，绑定在每一天上 -->
           <div class="date-cell" @click="!isBeforeToday(data.date) && handleDateClick(data.date)"
             :class="{ disabled: isBeforeToday(data.date) }">
             <span class="day">{{ data.day }}</span>
@@ -28,7 +27,6 @@
       ✅ 当前选中：{{ selectDay }}
     </div>
 
-    <!-- ========== 创建日程弹窗 ========== -->
     <el-dialog v-model="dialogVisible" title="创建日程" width="450px" @close="resetForm">
       <el-form :model="form" label-width="80px">
         <el-form-item label="日程类型">
@@ -47,12 +45,21 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="日期">
-          <el-input v-model="form.date" disabled></el-input>
+        <el-form-item label="日程日期">
+          <el-input v-model="form.date" disabled placeholder="日期已固定" />
+        </el-form-item>
+
+        <el-form-item label="日程时间">
+          <el-time-picker
+            v-model="form.time"
+            placeholder="请选择时间"
+            value-format="HH:mm:ss"
+            style="width: 100%"
+          />
         </el-form-item>
 
         <el-form-item label="日程内容">
-          <el-input v-model="form.work" placeholder="请输入内容（读书/运动等）"></el-input>
+          <el-input v-model="form.work" placeholder="请输入内容（读书/运动等）" type="text" />
         </el-form-item>
       </el-form>
 
@@ -74,43 +81,41 @@ const selectedDate = ref('')
 const selectDay = ref('')
 const monthScheduleList = ref([])
 const dialogVisible = ref(false)
+
 const isBeforeToday = (date) => {
   let now = dayjs().format('YYYY-MM-DD')
   return dayjs(date).isBefore(now)
 }
 
-// 表单
 const form = ref({
   scheduleForm: '',
   importance: '',
   date: '',
+  time: '',
   work: ''
 })
 
-// 重置表单
 const resetForm = () => {
   form.value = {
     scheduleForm: '',
     importance: '',
     date: '',
+    time: '',
     work: ''
   }
 }
 
-// 点击日期 → 打开弹窗
 const handleDateClick = (date) => {
-  const day = dayjs(date).format('YYYY-MM-DD HH:mm:ss')
+  const day = dayjs(date).format('YYYY-MM-DD')
   selectDay.value = day
   form.value.date = day
-  dialogVisible.value = true  // 打开弹窗
+  dialogVisible.value = true
 }
 
-// 格式化日期
 const formatDay = (date) => {
   return dayjs(date).format('YYYY-MM-DD')
 }
 
-// 加载日程
 const loadMonthSchedule = async (month) => {
   try {
     const res = await getMonthSchedule({ month })
@@ -122,7 +127,6 @@ const loadMonthSchedule = async (month) => {
   }
 }
 
-// 切换月份刷新
 watch(
   () => selectedDate.value,
   (newVal) => {
@@ -134,14 +138,12 @@ watch(
   { immediate: true }
 )
 
-// 判断重要日程
 const hasImportantSchedule = (date) => {
   return monthScheduleList.value.some(item => {
     return item.date.includes(date) && item.importance === 1
   })
 }
 
-// 获取当天日程
 const getDayItem = (date) => {
   return monthScheduleList.value.find(item => {
     return item.date.includes(date)
@@ -159,31 +161,35 @@ const getFormText = (form) => {
   return map[form] || '其他'
 }
 
-// ========== 提交创建日程 ==========
 const submitCreate = async () => {
-  if (!form.value.scheduleForm || !form.value.importance || !form.value.work) {
+  if (
+    !form.value.scheduleForm ||
+    !form.value.importance ||
+    !form.value.date ||
+    !form.value.time ||
+    !form.value.work
+  ) {
     ElMessage.warning('请填写完整信息')
     return
   }
 
+  const fullDateTime = form.value.date + ' ' + form.value.time
+
   try {
-    // 🔥 强制按后端接收的名字传参
     const params = {
-      scheduleForm: form.value.scheduleForm, // 确保传递
+      scheduleForm: form.value.scheduleForm,
       importance: form.value.importance,
-      date: form.value.date,
+      date: fullDateTime,
       work: form.value.work
     }
-
-    console.log("提交给后端的数据：", params) // 看控制台！
 
     let res = await createSchedule(params)
     ElMessage.success('创建成功！')
     dialogVisible.value = false
+    resetForm()
     loadMonthSchedule(dayjs(selectedDate.value).format('YYYY-MM'))
   } catch (err) {
     ElMessage.error('创建失败')
-    console.error(err)
   }
 }
 
@@ -259,6 +265,7 @@ onMounted(() => {
   color: #666 !important;
   display: block !important;
 }
+
 .date-cell.disabled {
   background: #f5f5f5 !important;
   color: #ccc !important;

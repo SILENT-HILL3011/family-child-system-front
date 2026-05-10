@@ -7,8 +7,6 @@
 
     <h2 style="text-align:center; margin-bottom:30px;">儿童健康知识图谱系统</h2>
 
-    <!-- 下面是你原来的三个模块代码，保持不变 -->
-    <!-- 模块1：儿童发育知识 -->
     <div class="module-card">
       <h3>📚 儿童发育知识</h3>
       <div class="query-row">
@@ -27,7 +25,6 @@
       </div>
     </div>
 
-    <!-- 模块2：营养成分 -->
     <div class="module-card">
       <h3>🍚 营养成分查询</h3>
       <div class="query-row">

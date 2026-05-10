@@ -90,9 +90,6 @@ const handleInbox = () => {
   router.push('/mail/box')
 }
 
-// ==============================================
-// 🔥 语音提示：你有未读邮件
-// ==============================================
 const speakUnreadTip = () => {
   if (!('speechSynthesis' in window)) return
   const u = new SpeechSynthesisUtterance()
@@ -102,9 +99,7 @@ const speakUnreadTip = () => {
   window.speechSynthesis.speak(u)
 }
 
-// ==============================================
-// 🔥 进入首页自动检查未读
-// ==============================================
+
 onMounted(async () => {
   try {
     const res = await checkUnReadMails()

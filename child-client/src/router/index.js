@@ -23,6 +23,11 @@ import Index from '../views/utils/Index.vue'
 import GrowthTrend from '../views/growth/GrowthTrend.vue'
 import MyExamination from '../views/growth/MyExamination.vue'
 import ReportDetail from '../views/growth/ReportDetail.vue'
+import Tools from '../views/utils/Tools.vue'
+import Health from '../views/utils/Health.vue'
+import Knowledge from '../views/utils/Knowledge.vue'
+import Nutrient from '../views/utils/Nutrient.vue'
+import Allergen from '../views/utils/Allergen.vue'
 
 const routes = [
   {
@@ -70,7 +75,7 @@ const routes = [
     name: 'VaccineQuery',
     component: VaccineQuery
   },
-   {
+  {
     path: '/my-examination',
     name: 'MyExamination',
     component: MyExamination
@@ -134,14 +139,42 @@ const routes = [
   {
     path: '/util',
     name: 'Util',
-    component: Index,
+    component: Tools,
     meta: { title: '实用工具' }
   },
-    {
+  // {
+  //   path: '/util',
+  //   name: 'Util',
+  //   component: Index,
+  //   meta: { title: '实用工具' }
+  // },
+  {
     path: '/growth/reportDetail',
     name: 'ReportDetail',
     component: ReportDetail
+  },
+  {
+    path: '/health',
+    name: 'Health',
+    component: Health
+  },
+  {
+    path: '/knowledge',
+    name: 'Knowledge',
+    component: Knowledge
+  },
+  {
+    path: '/nutrient',
+    name: 'Nutrient',
+    component: Nutrient
+  },
+  {
+    path: '/allergen',
+    name: 'Allergen',
+    component: Allergen
   }
+
+
 ]
 
 const router = createRouter({

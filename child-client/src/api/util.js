@@ -57,3 +57,33 @@ export const getAllergenFoodList = ()=>{
     method:'post'
   })
 }
+
+export const getToolList = () => {
+  return request({
+    url: '/child/util/recommend',
+    method: 'post'  
+  })
+}
+
+export const getSymptomList = () => {
+  return request({
+    url: '/child/health/symptom/list',
+    method: 'post'
+  })
+}
+
+export const queryDisease = (params) => {
+  return request({
+    url: '/child/health/disease',
+    method: 'post',
+    params: params
+  })
+}
+
+export const queryDrug = (params) => {
+  return request({
+    url: '/child/health/drug',
+    method: 'post',
+    params: params
+  })
+}
