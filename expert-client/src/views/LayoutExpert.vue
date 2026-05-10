@@ -1,12 +1,5 @@
 <template>
   <div class="home-page">
-    <aside class="sidebar">
-      <div class="sidebar-title">功能菜单</div>
-      <div class="menu-item" v-for="(item, index) in menuList" :key="index" @click="handleMenuClick(item)">
-        {{ item.name }}
-      </div>
-    </aside>
-
     <main class="main-content">
       <div class="top-bar">专家系统主页</div>
       <div class="content-area">
@@ -21,7 +14,6 @@
             </div>
           </div>
 
-          <!-- 医生模块 - doctor.jpg -->
           <div class="func-card" @click="goModule('doctor')">
             <div class="func-img">
               <img src="../assets/doctor.jpg" alt="医生模块" />
@@ -32,7 +24,6 @@
             </div>
           </div>
 
-          <!-- 教师模块 - teacher.jpg -->
           <div class="func-card" @click="goModule('teacher')">
             <div class="func-img">
               <img src="../assets/teacher.jpg" alt="教师模块" />
@@ -43,7 +34,6 @@
             </div>
           </div>
 
-          <!-- 厨师模块 - cook.jpg -->
           <div class="func-card" @click="goModule('cook')">
             <div class="func-img">
               <img src="../assets/cook.jpg" alt="厨师模块" />
@@ -57,7 +47,7 @@
       </div>
     </main>
 
-    <!-- 底部按钮 -->
+    <!-- 保留：退出登录 -->
     <div class="bottom-left">
       <el-button type="primary" @click="handleLogout">退出登录</el-button>
     </div>
@@ -73,17 +63,6 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
-
-const menuList = ref([
-  { name: '专家信息管理', type: 'dialog' },
-  { name: '体检发布', type: 'dialog' },
-  { name: '实用工具', path: '/expert/tools' },
-  { name: '用户咨询', path: '/expert/chat-list' }
-])
-
-const handleMenuClick = (item) => {
-  ElMessage.info('功能开发中：' + item.name)
-}
 
 const goModule = (type) => {
   const map = {
@@ -118,41 +97,11 @@ const handleInbox = () => {
   top: 0;
   left: 0;
   overflow: hidden;
-  display: flex;
-}
-
-.sidebar {
-  width: 220px;
-  height: 100%;
-  background: #f7f8fa;
-  border-right: 1px solid #e4e7ed;
-  padding: 20px 0;
-}
-
-.sidebar-title {
-  text-align: center;
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 20px;
-  color: #333;
-}
-
-.menu-item {
-  height: 50px;
-  line-height: 50px;
-  padding: 0 25px;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-size: 15px;
-}
-
-.menu-item:hover {
-  background: #e8f3ff;
-  color: #409eff;
 }
 
 .main-content {
-  flex: 1;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
 }

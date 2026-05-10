@@ -1,8 +1,11 @@
 <template>
   <div class="common-page">
-    <!-- 页面标题 -->
+    <!-- 页面标题 + 返回按钮 -->
     <div class="page-header">
-      <h1 class="page-title">通用模块</h1>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h1 class="page-title">通用模块</h1>
+        <el-button type="primary" @click="goBack">← 返回上一页</el-button>
+      </div>
       <p class="page-subtitle">专家基础信息管理与用户咨询入口</p>
     </div>
 
@@ -73,6 +76,9 @@ import { User, ChatDotRound } from '@element-plus/icons-vue'
 import { searchExpertInfo, updateExpertInfo } from '../../api/expert'
 
 const router = useRouter()
+
+// 返回上一页
+const goBack = () => router.go(-1)
 
 // 专家信息弹窗
 const infoDialogVisible = ref(false)

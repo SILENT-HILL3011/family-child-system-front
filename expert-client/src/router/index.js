@@ -10,6 +10,11 @@ import Common from '../views/common/Common.vue'
 import Doctor from '../views/doctor/Doctor.vue'
 import MyExam from '../views/doctor/MyExam.vue'
 import FillReport from '../views/doctor/FillReport.vue'
+import DiseaseManager from '../views/doctor/DiseaseManager.vue'
+import Teacher from '../views/teacher/Teacher.vue'
+import Knowledge from '../views/teacher/Knowledge.vue'
+import Chef from '../views/cook/Chef.vue'
+import ChefDataManager from '../views/cook/ChefDataManager.vue'
 
 
 
@@ -40,6 +45,22 @@ const routes = [
     component: Doctor
   },
   {
+    path: '/expert/teacher',
+    component: Teacher
+  },
+  {
+    path: '/expert/teacher/knowledge-manager',
+    component: Knowledge
+  },
+  {
+    path: '/expert/cook',
+    component: Chef
+  },
+  {
+    path: '/expert/chef/data-manager',
+    component: ChefDataManager
+  },
+  {
     path: '/expert/doctor/my-exam',
     component: MyExam
   },
@@ -47,6 +68,11 @@ const routes = [
     path: '/expert/doctor/fillReport',
     name: 'FillReport',
     component: FillReport
+  },
+  {
+    path: '/expert/doctor/disease-manager',
+    name: 'DiseaseManager',
+    component: DiseaseManager
   },
 
 

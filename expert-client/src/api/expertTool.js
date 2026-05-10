@@ -95,3 +95,89 @@ export const addNutrient = (params) => {
     params: params
   })
 }
+
+// ====================== 疾病知识图谱 ======================
+export const diseaseList = () => {
+  return request({
+    url: '/expert/disease/diseaseList',
+    method: 'post'
+  })
+}
+export const addDisease = (params) => {
+  return request({
+    url: '/expert/disease/addDisease',
+    method: 'post',
+    params: params
+  })
+}
+
+export const getDisease = (params) => {
+  return request({
+    url: '/expert/disease/getDisease',
+    method: 'post',
+    params: params
+  })
+}
+
+// ====================== 症状 ======================
+export const symptomList = () => {
+  return request({
+    url: '/expert/disease/symptomList',
+    method: 'post'
+  })
+}
+export const addSymptom = (params) => {
+  return request({
+    url: '/expert/disease/addSymptom',
+    method: 'post',
+    params: params
+  })
+}
+
+export const getSymptom = (params) => {
+  return request({
+    url: '/expert/disease/getSymptom',
+    method: 'post',
+    params: params
+  })
+}
+
+// ====================== 药品 ======================
+export const drugList = () => {
+  return request({
+    url: '/expert/disease/drugList',
+    method: 'post'
+  })
+}
+export const addDrug = (params) => {
+  return request({
+    url: '/expert/disease/addDrug',
+    method: 'post',
+    params: params
+  })
+}
+
+export const getDrug = (params) => {
+  return request({
+    url: '/expert/disease/getDrug',
+    method: 'post',
+    params: params
+  })
+}
+
+// ====================== 关系维护 ======================
+export const relateSymptom = (params) => {
+  return request({
+    url: '/expert/disease/relateSymptom',
+    method: 'post',
+    params: params
+  })
+}
+
+export const relateDrug = (params) => {
+  return request({
+    url: '/expert/disease/relateDrug',
+    method: 'post',
+    params: params
+  })
+}
